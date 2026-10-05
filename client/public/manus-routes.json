@@ -1,0 +1,1 @@
+{"routes":[{"path":"/","title":"الرئيسية"},{"path":"/services","title":"الخدمات"},{"path":"/services/:slug","title":"تفاصيل الخدمة"},{"path":"/articles","title":"المقالات"},{"path":"/articles/:slug","title":"تفاصيل المقال"},{"path":"/about","title":"عن Business Owner"},{"path":"/contact","title":"تواصل معنا"},{"path":"/admin","title":"لوحة الإدارة"}]}
