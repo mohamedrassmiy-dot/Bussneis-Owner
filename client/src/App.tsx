@@ -1,3 +1,4 @@
+import { CmsPage, CmsPost } from "./CmsPublic";
 import FullCMS from "./FullCMS";
 import { useMemo, useState } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
@@ -227,7 +228,7 @@ function AdminPage() {
   if(auth.data?.role!=="admin")return <AdminLogin/>;
   return <FullCMS/>;
 }
-function Router() { return <Switch><Route path="/" component={Home} /><Route path="/services" component={ServicesPage} /><Route path="/services/:slug">{(params) => <ServiceDetail slug={params.slug} />}</Route><Route path="/articles" component={ArticlesPage} /><Route path="/articles/:slug">{(params) => <ArticleDetail slug={params.slug} />}</Route><Route path="/about" component={AboutPage} /><Route path="/contact" component={ContactPage} /><Route path="/Admin" component={AdminPage} /><Route path="/admin" component={AdminPage} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>; }
+function Router() { return <Switch><Route path="/" component={Home} /><Route path="/services" component={ServicesPage} /><Route path="/services/:slug">{(params) => <ServiceDetail slug={params.slug} />}</Route><Route path="/articles" component={ArticlesPage} /><Route path="/articles/:slug">{(params) => <ArticleDetail slug={params.slug} />}</Route><Route path="/about" component={AboutPage} /><Route path="/contact" component={ContactPage} /><Route path="/p/:slug">{(params)=><CmsPage slug={params.slug} locale="ar"/>}</Route><Route path="/en/p/:slug">{(params)=><CmsPage slug={params.slug} locale="en"/>}</Route><Route path="/blog/:slug">{(params)=><CmsPost slug={params.slug} locale="ar"/>}</Route><Route path="/en/blog/:slug">{(params)=><CmsPost slug={params.slug} locale="en"/>}</Route><Route path="/Admin" component={AdminPage} /><Route path="/admin" component={AdminPage} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>; }
 
 function App() { return <ErrorBoundary><ThemeProvider defaultTheme="light"><TooltipProvider><Toaster /><Shell><Router /></Shell></TooltipProvider></ThemeProvider></ErrorBoundary>; }
 export default App;
