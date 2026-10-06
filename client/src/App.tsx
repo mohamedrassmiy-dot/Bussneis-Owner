@@ -1,6 +1,6 @@
 import EnglishSite from "./EnglishSite";
 import { CmsPage, CmsPost, CmsOverride, CmsPostOverride } from "./CmsPublic";
-import FullCMS from "./FullCMS";
+import ProfessionalCMS from "./ProfessionalCMS";
 import { useMemo, useState } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
 import {
@@ -232,7 +232,7 @@ function AdminPage() {
   const auth=trpc.auth.me.useQuery();
   if(auth.isLoading)return <section className="admin-wrap section-wrap"><p>جاري التحقق من الحساب...</p></section>;
   if(auth.data?.role!=="admin")return <AdminLogin/>;
-  return <FullCMS/>;
+  return <ProfessionalCMS/>;
 }
 function Router() { return <Switch><Route path="/"><CmsOverride slug="home" locale="ar"><Home/></CmsOverride></Route><Route path="/services"><CmsOverride slug="services" locale="ar"><ServicesPage/></CmsOverride></Route><Route path="/services/:slug">{(params) => <CmsOverride slug={"service-"+params.slug} locale="ar"><ServiceDetail slug={params.slug} /></CmsOverride>}</Route><Route path="/articles"><CmsOverride slug="articles" locale="ar"><ArticlesPage/></CmsOverride></Route><Route path="/articles/:slug">{(params) => <CmsPostOverride slug={params.slug} locale="ar"><ArticleDetail slug={params.slug} /></CmsPostOverride>}</Route><Route path="/about"><CmsOverride slug="about" locale="ar"><AboutPage/></CmsOverride></Route><Route path="/contact"><CmsOverride slug="contact" locale="ar"><ContactPage/></CmsOverride></Route><Route path="/p/:slug">{(params)=><CmsPage slug={params.slug} locale="ar"/>}</Route><Route path="/en/p/:slug">{(params)=><CmsPage slug={params.slug} locale="en"/>}</Route><Route path="/blog/:slug">{(params)=><CmsPost slug={params.slug} locale="ar"/>}</Route><Route path="/en/blog/:slug">{(params)=><CmsPost slug={params.slug} locale="en"/>}</Route><Route path="/Admin" component={AdminPage} /><Route path="/admin" component={AdminPage} /><Route path="/en" component={EnglishSite} /><Route path="/en/*" component={EnglishSite} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>; }
 
