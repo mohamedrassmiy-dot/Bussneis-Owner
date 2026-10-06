@@ -45,7 +45,7 @@ function ContentEditor({kind,locale,entry,close,afterSave}:{kind:"page"|"post";l
  const savePost=trpc.cms.savePost.useMutation();
  const remove=trpc.cms.deleteContent.useMutation();
  const set=<K extends keyof RecordType>(key:K,v:RecordType[K])=>setValue(x=>({...x,[key]:v}));
- const updateSection=(i:number,prop:keyof Section,value:string)=>set("sections",value.sections.map((s,j)=>j===i?{...s,[prop]:value}:s));
+ const updateSection=(i:number,prop:keyof Section,nextValue:string)=>set("sections",value.sections.map((s,j)=>j===i?{...s,[prop]:nextValue}:s));
  const move=(from:number,to:number)=>{if(to<0||to>=value.sections.length)return;const next=[...value.sections];const item=next.splice(from,1)[0];next.splice(to,0,item);set("sections",next);};
  const upload=async(file:File,target:"featuredImage"|"ogImage"|number)=>{
   if(!["image/png","image/jpeg","image/webp"].includes(file.type)||file.size>5*1024*1024){setNotice(t(locale,"يجب أن تكون الصورة PNG/JPEG/WebP وبحد أقصى 5MB","Only PNG/JPEG/WebP images up to 5MB allowed."));return;}
