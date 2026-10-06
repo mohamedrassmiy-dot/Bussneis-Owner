@@ -1,0 +1,37 @@
+name: Staging Security and Responsive UX
+on:
+  push:
+    branches: [business-owner-v2]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  security-and-ux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout tested source
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install isolated Playwright and axe-core
+        run: |
+          mkdir -p /tmp/business-owner-qa
+          npm install --prefix /tmp/business-owner-qa --no-save --no-package-lock --ignore-scripts playwright@1.56.1 @axe-core/playwright@4.11.1
+      - name: Install headless Chromium
+        run: /tmp/business-owner-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Check staging security and 3 responsive breakpoints
+        env:
+          QA_BASE_URL: https://business-owner-v3-staging-production.up.railway.app
+          QA_ARTIFACT_DIR: qa-results
+        run: node scripts/qa-staging.mjs
+      - name: Upload screenshots and security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-security-ui-ux-report
+          path: qa-results/
+          if-no-files-found: warn
+          retention-days: 14
