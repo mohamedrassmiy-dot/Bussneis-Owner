@@ -78,7 +78,7 @@ export const cmsPages = mysqlTable("cms_pages", {
   summary: text("summary"),
   featuredImage: text("featured_image"),
   imageAlt: varchar("image_alt", { length: 300 }),
-  sections: json("sections").$type<Array<{ id: string; type: "hero"|"text"|"image"|"embed"|"cta"|"faq"; title?: string; body?: string; image?: string; alt?: string; url?: string; buttonLabel?: string; buttonUrl?: string }>>().notNull(),
+  sections: json("sections").$type<Array<{ id: string; type: "hero"|"text"|"image"|"embed"|"cta"|"faq"|"cards"; title?: string; body?: string; image?: string; alt?: string; url?: string; buttonLabel?: string; buttonUrl?: string; cards?: Array<{id:string;title:string;body?:string;image?:string;alt?:string;buttonLabel?:string;buttonUrl?:string}> }>>().notNull(),
   seoTitle: varchar("seo_title", { length: 300 }),
   seoDescription: text("seo_description"),
   canonicalUrl: text("canonical_url"),
