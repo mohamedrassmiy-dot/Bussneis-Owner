@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { isAdminSession } from "./adminAuth";
+import { proRecordMedia,proAudit } from "../cmsProfessionalDb";
 
 function mediaClient() {
   const { MEDIA_ENDPOINT, MEDIA_BUCKET, MEDIA_REGION, MEDIA_ACCESS_KEY_ID, MEDIA_SECRET_ACCESS_KEY } = process.env;
@@ -35,7 +36,10 @@ export function registerCmsMedia(app: Express) {
     const key="cms/"+randomUUID()+"."+type.ext;
     try{
       await media.s3.send(new PutObjectCommand({Bucket:media.bucket,Key:key,Body:req.body,ContentType:type.mime,CacheControl:"public,max-age=86400"}));
-      return res.status(201).json({url:"https://"+(process.env.RAILWAY_PUBLIC_DOMAIN || req.get("host"))+"/media/"+key.slice(4)});
+      const url="https://"+(process.env.RAILWAY_PUBLIC_DOMAIN || req.get("host"))+"/media/"+key.slice(4);
+      await proRecordMedia({fileKey:key,publicUrl:url,mime:type.mime,bytes:req.body.length});
+      await proAudit("media.upload",key).catch(()=>{});
+      return res.status(201).json({url});
     }catch(error){console.error("Media upload failed",error);return res.status(502).json({error:"Image upload failed"});}
   });
   app.get("/media/:filename",async(req,res)=>{
