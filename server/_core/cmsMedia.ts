@@ -3,7 +3,7 @@ import express from "express";
 import { randomUUID } from "node:crypto";
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { isAdminSession } from "./adminAuth";
+import { isAdminSessionFresh } from "./adminAuth";
 import { proRecordMedia,proAudit } from "../cmsProfessionalDb";
 
 function mediaClient() {
@@ -27,7 +27,7 @@ function fileType(bytes: Buffer): { ext: string; mime: string } | null {
 }
 export function registerCmsMedia(app: Express) {
   app.post("/api/admin/media", express.raw({type:["image/jpeg","image/png","image/webp"],limit:"5mb"}), async (req,res)=>{
-    if (!isAdminSession(req)) return res.status(401).json({error:"Unauthorized"});
+    if (!await isAdminSessionFresh(req)) return res.status(401).json({error:"Unauthorized"});
     if (!Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({error:"Image required"});
     const type=fileType(req.body);
     if(!type)return res.status(415).json({error:"Only JPG, PNG and WebP images are allowed"});
