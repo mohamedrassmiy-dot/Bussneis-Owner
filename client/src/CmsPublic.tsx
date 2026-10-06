@@ -28,13 +28,18 @@ function Seo({item,locale}:{item:any;locale:Locale}){
 const safeEmbed=(url:string)=>{
  try{const u=new URL(url);return u.protocol==="https:"&&["www.youtube.com","youtube.com","www.youtube-nocookie.com","player.vimeo.com","www.google.com","maps.google.com","www.figma.com"].includes(u.hostname.toLowerCase())?u.href:null}catch{return null}
 };
+function safeCallToActionUrl(value:string):string|null {
+  if (value.startsWith("/") && !value.startsWith("//") && !value.includes("\\\\")) return value;
+  try { const url=new URL(value); return url.protocol==="https:" ? url.href : null; }
+  catch { return null; }
+}
 function Section({section}:{section:any}){
  if(section.type==="embed"){const url=safeEmbed(section.url||"");return url?<section className="public-cms-section"><iframe src={url} title={section.title||"Embedded content"} loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation" referrerPolicy="strict-origin-when-cross-origin"/></section>:null}
  return <section className={"public-cms-section public-cms-"+section.type}>
  {section.title&&<h2>{section.title}</h2>}
  {section.image&&<img src={section.image} alt={section.alt||section.title||""} loading="lazy"/>}
  {section.body&&<p>{section.body}</p>}
- {section.type==="cta"&&section.buttonUrl&&<a className="public-cms-cta" href={section.buttonUrl}>{section.buttonLabel||"Contact us"}</a>}
+ {section.type==="cta"&&section.buttonUrl&&safeCallToActionUrl(section.buttonUrl)&&<a className="public-cms-cta" href={safeCallToActionUrl(section.buttonUrl)||undefined}>{section.buttonLabel||"Contact us"}</a>}
  </section>;
 }
 export function CmsPage({slug,locale}:{slug:string;locale:Locale}){
