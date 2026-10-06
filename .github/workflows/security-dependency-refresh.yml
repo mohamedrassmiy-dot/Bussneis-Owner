@@ -1,0 +1,65 @@
+name: Refresh Vulnerable Dependencies (Staging)
+on:
+  push:
+    branches: [business-owner-v2]
+    paths:
+      - '.github/workflows/security-dependency-refresh.yml'
+permissions:
+  contents: write
+jobs:
+  remediate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: business-owner-v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Upgrade advisories with known patched versions
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const file='package.json';
+          const pkg=JSON.parse(fs.readFileSync(file,'utf8'));
+          Object.assign(pkg.dependencies,{
+            '@trpc/server':'^11.8.0',
+            '@trpc/client':'^11.8.0',
+            '@trpc/react-query':'^11.8.0',
+            'axios':'^1.16.0',
+            'drizzle-orm':'^0.45.2',
+            'mysql2':'^3.22.0',
+            'nanoid':'^5.1.16'
+          });
+          pkg.pnpm = pkg.pnpm || {};
+          pkg.pnpm.overrides = {
+            ...(pkg.pnpm.overrides || {}),
+            'fast-xml-parser':'5.5.6',
+            'proxy-addr':'2.0.8',
+            'path-to-regexp':'0.1.13',
+            'lodash':'4.18.0',
+            'lodash-es':'4.18.0',
+            'form-data':'4.0.6'
+          };
+          fs.writeFileSync(file,JSON.stringify(pkg,null,2)+'\n');
+          NODE
+      - name: Resolve and update the lockfile
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.18.0 --activate
+          pnpm install --no-frozen-lockfile
+      - name: Run static TypeScript check
+        run: pnpm check
+      - name: Run unit tests
+        run: pnpm test
+      - name: Commit dependency changes to Staging branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json pnpm-lock.yaml
+          if ! git diff --cached --quiet; then
+            git commit -m "Security: update vulnerable production dependencies"
+            git push origin HEAD:business-owner-v2
+          fi
