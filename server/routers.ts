@@ -17,7 +17,7 @@ export const appRouter = router({
   articles: router({ list: publicProcedure.query(() => listPublishedArticles()), bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(({ input }) => getArticleBySlug(input.slug)) }),
   services: router({ list: publicProcedure.query(() => listPublishedServices()) }),
   leads: router({
-    create: publicProcedure.input(z.object({ name: z.string().min(2), email: z.string().email(), company: z.string().optional(), service: z.string().optional(), message: z.string().min(8) })).mutation(({ input }) => createLead({ ...input, company: input.company || null, service: input.service || null, status: "new" })),
+    create: publicProcedure.input(z.object({ name: z.string().min(2), email: z.string().email(), company: z.string().optional(), service: z.string().optional(), message: z.string().min(8) })).mutation(({ input }) => createLead({ ...input, name: input.name.trim(), email: input.email.trim().toLowerCase(), company: input.company?.trim() || null, service: input.service?.trim() || null, message: input.message.trim(), status: "new" })),
   }),
   admin: router({
     dashboard: adminProcedure.query(async () => { const [articles, services, leads] = await Promise.all([listAllArticles(), listAllServices(), listAllLeads()]); return { articles, services, leads }; }),
