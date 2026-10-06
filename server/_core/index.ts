@@ -3,6 +3,7 @@ import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
+import { registerAdminLogin } from "./adminAuth";
 import { publicPlatformScript } from "./publicConfig";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -29,7 +30,8 @@ async function startServer() {
   app.get("/api/platform/config.js", (_req, res) => {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
   });
-  registerOAuthRoutes(app);
+  registerAdminLogin(app);
+  if (process.env.MANUS_OAUTH_API_URL) registerOAuthRoutes(app);
   // tRPC API
   app.use(
     "/api/trpc",
