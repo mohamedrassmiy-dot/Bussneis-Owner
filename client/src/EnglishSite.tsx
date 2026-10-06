@@ -1,5 +1,5 @@
 import EnglishContactForm from "./EnglishContactForm";
-import { CmsOverride } from "./CmsPublic";
+import { CmsOverride, CmsPostOverride } from "./CmsPublic";
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { ArrowUpRight, Mail, Menu } from "lucide-react";
@@ -33,7 +33,7 @@ export default function EnglishSite(){
   {p==="services"&&<section className="en-section">{title("Services built around real business challenges")}<div className="en-grid">{services.map(x=><div key={x.slug}>{card(x.label,x.description,"/en/services/"+x.slug)}</div>)}</div></section>}
   {service&&<CmsOverride slug={"service-"+service.slug} locale="en"><section className="en-section en-detail">{title(service.label)}<p className="en-lead">{service.description}</p><h2>What we work on</h2><ul>{service.points.map(x=><li key={x}>{x}</li>)}</ul><a className="en-button" href={mail("Inquiry: "+service.label)}>Discuss this service <Mail size={17}/></a></section></CmsOverride>}
   {p==="articles"&&<section className="en-section">{title("Business insights & practical thinking")}<div className="en-grid">{articles.map(x=><div key={x.slug}>{card(x.title,x.excerpt,"/en/articles/"+x.slug)}</div>)}</div></section>}
-  {article&&<article className="en-section en-detail">{title(article.title)}<p className="en-lead">{article.excerpt}</p>{article.body.map(x=><p key={x}>{x}</p>)}<a className="en-button" href={mail("Discuss: "+article.title)}>Turn this idea into action <ArrowUpRight size={17}/></a></article>}
+  {article&&<CmsPostOverride slug={article.slug} locale="en"><article className="en-section en-detail">{title(article.title)}<p className="en-lead">{article.excerpt}</p>{article.body.map(x=><p key={x}>{x}</p>)}<a className="en-button" href={mail("Discuss: "+article.title)}>Turn this idea into action <ArrowUpRight size={17}/></a></article></CmsPostOverride>}
   {p==="about"&&<section className="en-section en-detail">{title("About Business Owner")}<p className="en-lead">Business Owner is a practical knowledge and advisory platform for entrepreneurs, owners and decision-makers.</p><p>We believe that clarity is a competitive advantage. We connect business strategy, positioning, marketing and growth into decisions teams can execute.</p><p>Our approach is simple: understand, analyze, design, execute and improve.</p><a className="en-button" href={mail("Business Owner introduction")}>Get in touch <Mail size={17}/></a></section>}
   {p==="contact"&&<section className="en-section en-detail">{title("Let's talk about your business")}<p className="en-lead">Tell us what you are building or where you feel stuck. A short email is enough to start.</p><EnglishContactForm/><p>Or email us directly: <a href={"mailto:"+email}>{email}</a></p></section>}
   {p && !["services","articles","about","contact"].includes(p) && !service && !article && <section className="en-section en-detail">{title("Page not found")}<Link href="/en">Back to home</Link></section>}
