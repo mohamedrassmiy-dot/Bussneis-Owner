@@ -34,7 +34,7 @@ try {
   for (const api of ["/api/trpc/admin.dashboard", "/api/trpc/cms.pages", "/api/trpc/cms.posts", "/api/trpc/cms.settings"]) {
     const res = await fetchWithTimeout(api);
     const body = await res.text();
-    check(res.status === 401 && /UNAUTHORIZED/i.test(body), "AUTHZ_" + api, "Private CMS API returned " + res.status + ", body: " + body.slice(0,150));
+    check([401,403].includes(res.status) && /(UNAUTHORIZED|FORBIDDEN)/i.test(body), "AUTHZ_" + api, "Private CMS API returned " + res.status + ", body: " + body.slice(0,150));
   }
   const noAuthUpload = await fetchWithTimeout("/api/admin/media", {
     method:"POST", headers:{"Content-Type":"image/png"}, body:Buffer.from([137,80,78,71,13,10,26,10]),
@@ -98,10 +98,10 @@ try {
         observations.push({category:"ui",route:target.url,viewport:target.width+"x"+target.height,screenshot:screenshotFile,overflow,jsErrors:runtimeErrors.length});
         if(["ar-home-desktop","en-home-desktop","admin-mobile"].includes(target.id)){
           const axe=await new AxeBuilder({page}).withTags(["wcag2a","wcag2aa"]).analyze();
-          const accessibility=axe.violations.map(x=>({rule:x.id,impact:x.impact,count:x.nodes.length,description:x.help}));
+          const accessibility=axe.violations.map(x=>({rule:x.id,impact:x.impact,count:x.nodes.length,description:x.help,examples:x.nodes.slice(0,6).map(n=>({target:n.target,html:n.html?.slice(0,240),summary:n.failureSummary?.slice(0,320)}))}));
           fs.writeFileSync(path.join(outDir,target.id+"-accessibility.json"),JSON.stringify(accessibility,null,2));
           for(const a of accessibility) {
-            if(["serious","critical"].includes(a.impact))add("blocker","A11Y_"+target.id+"_"+a.rule,a.impact+" "+a.description+" ("+a.count+" nodes)");
+            if(["serious","critical"].includes(a.impact))add("blocker","A11Y_"+target.id+"_"+a.rule,a.impact+" "+a.description+" ("+a.count+" nodes). Targets: "+JSON.stringify(a.examples));
             else add("warning","A11Y_"+target.id+"_"+a.rule,a.impact+" "+a.description+" ("+a.count+" nodes)");
           }
         }
