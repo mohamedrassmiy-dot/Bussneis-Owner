@@ -145,6 +145,16 @@ function ContentEditor({kind,locale,entry,close,afterSave}:{kind:"page"|"post";l
   </div>
  </div>;
 }
+function normalizeRecord(item:any):RecordType{
+ return {...initial(item?.locale==="en"?"en":"ar"),...item,
+   locale:item?.locale==="en"?"en":"ar",
+   status:item?.status==="published"?"published":"draft",
+   robots:(["index,follow","noindex,follow","noindex,nofollow"].includes(item?.robots)?item.robots:"index,follow") as RecordType["robots"],
+   featuredImage:item?.featuredImage||"",imageAlt:item?.imageAlt||"",summary:item?.summary||"",excerpt:item?.excerpt||"",body:item?.body||"",
+   category:item?.category||"",ogImage:item?.ogImage||"",seoTitle:item?.seoTitle||"",seoDescription:item?.seoDescription||"",
+   canonicalUrl:item?.canonicalUrl||"",schemaJson:item?.schemaJson||"",sections:item?.sections||[],embeds:item?.embeds||[]
+ };
+}
 export function ProContent({kind,locale,editTarget,clearTarget}:{kind:"page"|"post";locale:ProLanguage;editTarget:{kind:"page"|"post";id:number}|null;clearTarget:()=>void}){
  const pages=trpc.cms.pages.useQuery();
  const posts=trpc.cms.posts.useQuery();
@@ -155,9 +165,12 @@ export function ProContent({kind,locale,editTarget,clearTarget}:{kind:"page"|"po
  const [editing,setEditing]=useState<RecordType|null>(null);
  const [filterError,setFilterError]=useState("");
  useEffect(()=>{
-  if(editTarget&&editTarget.kind===kind&&rows){const item=rows.find(x=>x.id===editTarget.id);if(item)setEditing({...initial(item.locale),...item,featuredImage:item.featuredImage||"",imageAlt:item.imageAlt||"",summary:"summary" in item?item.summary||"":"",excerpt:"excerpt" in item?item.excerpt:"",body:"body" in item?item.body:"",category:"category" in item?item.category||"":"",ogImage:item.ogImage||"",seoTitle:item.seoTitle||"",seoDescription:item.seoDescription||"",canonicalUrl:item.canonicalUrl||"",schemaJson:item.schemaJson||"",sections:"sections" in item?item.sections:[],embeds:"embeds" in item?item.embeds||[]:[]});}
+  if(editTarget&&editTarget.kind===kind&&rows){
+   const item=rows.find(x=>x.id===editTarget.id);
+   if(item)setEditing(normalizeRecord(item));
+  }
  },[editTarget,kind,rows]);
- const open=(item:any)=>{setEditing({...initial(item.locale),...item,featuredImage:item.featuredImage||"",imageAlt:item.imageAlt||"",summary:item.summary||"",excerpt:item.excerpt||"",body:item.body||"",category:item.category||"",ogImage:item.ogImage||"",seoTitle:item.seoTitle||"",seoDescription:item.seoDescription||"",canonicalUrl:item.canonicalUrl||"",schemaJson:item.schemaJson||"",sections:item.sections||[],embeds:item.embeds||[]});};
+ const open=(item:any)=>setEditing(normalizeRecord(item));
  const filtered=(rows||[]).filter(x=>(language==="all"||x.locale===language)&&(status==="all"||x.status===status)&&[x.title,x.slug,x.contentKey].join(" ").toLowerCase().includes(search.toLowerCase()));
  if(editing)return <ContentEditor kind={kind} locale={locale} entry={editing} close={()=>{setEditing(null);clearTarget();}} afterSave={()=>{kind==="page"?pages.refetch():posts.refetch();}}/>;
  return <section className="pro-card"><div className="pro-section-heading" style={{marginTop:0}}><h2>{t(locale,kind==="page"?"الصفحات العربية والإنجليزية":"المقالات العربية والإنجليزية",kind==="page"?"All pages":"All articles")}</h2><div className="pro-inline"><button className="pro-btn compact" onClick={()=>kind==="page"?pages.refetch():posts.refetch()}><RefreshCw size={15}/></button><button className="pro-btn primary" onClick={()=>setEditing(initial(locale))}><FilePlus2 size={16}/>{t(locale,"إضافة جديد","Create new")}</button></div></div>
@@ -168,7 +181,7 @@ export function ProContent({kind,locale,editTarget,clearTarget}:{kind:"page"|"po
  {(kind==="page"?pages:posts).isError&&<div className="pro-notice error">{(kind==="page"?pages:posts).error?.message}</div>}
  {!filtered.length?<div className="pro-empty">{t(locale,"لا توجد سجلات مطابقة؛ اضغط «إضافة جديد».","No matching records. Create a new one.")}</div>:<div className="pro-table-scroll"><table className="pro-table"><thead><tr><th>{t(locale,"العنوان","Title")}</th><th>{t(locale,"اللغة","Language")}</th><th>{t(locale,"الحالة","Status")}</th><th>AR / EN</th><th>{t(locale,"الإجراءات","Actions")}</th></tr></thead><tbody>{filtered.map(row=>{
  const other=(rows||[]).find(x=>x.contentKey===row.contentKey&&x.locale!==(row.locale));
- return <tr key={row.id}><td><strong>{row.title}</strong><small>{row.slug}</small></td><td><span className="pro-language-pill">{row.locale.toUpperCase()}</span></td><td><span className={"pro-tag "+(row.status==="published"?"green":"amber")}>{row.status==="published"?t(locale,"منشور","Published"):t(locale,"مسودة","Draft")}</span></td><td>{other?<span className="pro-tag green">AR ✓ EN</span>:<button className="pro-btn compact" onClick={()=>setEditing(translateDraft({...initial(row.locale),...row,summary:"summary" in row?row.summary||"":"",excerpt:"excerpt" in row?row.excerpt:"",body:"body" in row?row.body:"",category:"category" in row?row.category||"":"",sections:"sections" in row?row.sections:[],embeds:"embeds" in row?row.embeds||[]:[]}))}><Languages size={13}/>{t(locale,"ترجمة","Translate")}</button>}</td><td><div className="pro-inline"><button className="pro-btn compact" onClick={()=>open(row)}>{t(locale,"تعديل","Edit")}</button><a className="pro-btn compact ghost" href={pathFor({...initial(row.locale),...row},kind)} target="_blank" rel="noreferrer" title="View original URL"><ExternalLink size={14}/></a></div></td></tr>})}</tbody></table></div>}
+ return <tr key={row.id}><td><strong>{row.title}</strong><small>{row.slug}</small></td><td><span className="pro-language-pill">{row.locale.toUpperCase()}</span></td><td><span className={"pro-tag "+(row.status==="published"?"green":"amber")}>{row.status==="published"?t(locale,"منشور","Published"):t(locale,"مسودة","Draft")}</span></td><td>{other?<span className="pro-tag green">AR ✓ EN</span>:<button className="pro-btn compact" onClick={()=>setEditing(translateDraft(normalizeRecord(row))))}><Languages size={13}/>{t(locale,"ترجمة","Translate")}</button>}</td><td><div className="pro-inline"><button className="pro-btn compact" onClick={()=>open(row)}>{t(locale,"تعديل","Edit")}</button><a className="pro-btn compact ghost" href={pathFor(normalizeRecord(row),kind)} target="_blank" rel="noreferrer" title="View original URL"><ExternalLink size={14}/></a></div></td></tr>})}</tbody></table></div>}
  <p className="pro-hint" style={{marginTop:16}}>{t(locale,"الصفحات القديمة المستوردة محفوظة كمسودات، ولا تغيّر الصفحة العامة حتى تنشرها من المحرر.","Imported legacy pages remain drafts and do not replace live pages until published.")}</p>
  </section>;
 }
