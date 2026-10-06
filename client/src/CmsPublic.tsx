@@ -34,6 +34,8 @@ function safeCallToActionUrl(value:string):string|null {
   catch { return null; }
 }
 function Section({section}:{section:any}){
+ if(section.type==="cards")return <section className="public-cms-section"><h2>{section.title||""}</h2><div className="public-cms-cards">{(section.cards||[]).map((card:any)=><div className="public-cms-card" key={card.id}>{card.image&&<img src={card.image} alt={card.alt||card.title||""} loading="lazy"/>}<h3>{card.title}</h3><p>{card.body||""}</p>{card.buttonUrl&&safeCallToActionUrl(card.buttonUrl)&&<a href={safeCallToActionUrl(card.buttonUrl)||undefined}>{card.buttonLabel||"Read more"} →</a>}</div>)}</div></section>;
+ if(section.type==="faq")return <section className="public-cms-section"><details><summary>{section.title||"Question"}</summary><p>{section.body||""}</p></details></section>;
  if(section.type==="embed"){const url=safeEmbed(section.url||"");return url?<section className="public-cms-section"><iframe src={url} title={section.title||"Embedded content"} loading="lazy" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation" referrerPolicy="strict-origin-when-cross-origin"/></section>:null}
  return <section className={"public-cms-section public-cms-"+section.type}>
  {section.title&&<h2>{section.title}</h2>}
