@@ -8,6 +8,13 @@ const pageData=[
  {slug:"about",title:"عن Business Owner",summary:"نحن نؤمن أن الوضوح ميزة.",sections:[["hero","نحن نؤمن أن الوضوح ميزة.","Business Owner مساحة عملية لصاحب العمل: نضع المعرفة في سياقها، ونحوّلها إلى قرارات تقدر على تحريك مشروع حقيقي."],["text","فضول عملي","نسأل قبل أن نقترح، ونبحث عن السبب قبل أن نجمّل النتيجة."],["text","تركيز تجاري","كل فكرة يجب أن تساعد على قرار أو تقرّب العميل من الثقة."],["text","حركة قابلة للاستمرار","نترك وراءنا نظاماً تستطيع مواصلته، لا اعتماداً جديداً علينا."]]},
  {slug:"contact",title:"تواصل معنا",summary:"ابدأ محادثة عن مشروعك.",sections:[["hero","تواصل معنا","شاركنا تفاصيل مشروعك وسنتواصل معك."],["cta","البريد الإلكتروني","bussneis.owner@gmail.com"]]},
 ] as const;
+const englishPages=[
+ {slug:"home",title:"Home — Business Owner",summary:"Good ideas need owners who know how to move them.",sections:[["hero","Good ideas need owners who know how to move them.","We help business owners turn experience into a clear offer, a manageable growth system and content that earns trust."],["cta","Tell us about your business","Start a conversation about your project."]]},
+ {slug:"services",title:"Business Owner Services",summary:"What your business needs to move forward with confidence.",sections:[["hero","Services that move your business forward","We start with the right questions and build clear offers, positioning and measurable growth paths."]]},
+ {slug:"articles",title:"Insights and Articles",summary:"Practical thinking for business owners.",sections:[["hero","Notes from the workbench","Practical knowledge for better decisions, clearer offers and sustainable growth."]]},
+ {slug:"about",title:"About Business Owner",summary:"We believe clarity is an advantage.",sections:[["hero","Clarity is an advantage","Business Owner turns practical business knowledge into decisions that move real projects forward."]]},
+ {slug:"contact",title:"Contact Us",summary:"Start a conversation about your business.",sections:[["hero","Let's talk about your business","Share your goals and challenges with us."]]},
+] as const;
 const postData=[
  {slug:"growth-needs-a-system",title:"النمو لا يحتاج ضجيجاً أكثر؛ يحتاج نظاماً أوضح",category:"نمو الأعمال",excerpt:"حين تتوقف عن مطاردة كل فرصة وتبدأ في بناء مسار يمكن تكراره، يصبح النمو نتيجة مفهومة لا مفاجأة.",body:["كثير من أصحاب الأعمال يصفون مشكلتهم بأنها نقص في العملاء. لكن بعد أول محادثة نكتشف غالباً أن المشكلة ليست في الاهتمام؛ بل في غياب المسار الذي يحوّل الاهتمام إلى قرار.","النظام يبدأ بثلاثة أسئلة: من العميل الذي تستطيع خدمته فعلاً؟ ما المشكلة التي تقدر على شرحها ببساطة؟ وما الدليل الذي يجعل الخطوة التالية آمنة؟ عندما تجتمع هذه الإجابات، يصبح المحتوى امتداداً للفكرة وليس بديلاً عنها.","لا تحتاج أن تنشر أكثر. تحتاج أن تكرر فكرة نافعة بطرق مختلفة، وتربطها بدعوة واضحة، ثم تراجع ما الذي فتح محادثة حقيقية. هذا هو الفرق بين نشاط تسويقي ونظام نمو."]},
  {slug:"offer-before-logo",title:"قبل أن تسأل: كيف يبدو الشعار؟ اسأل: ماذا يفهم العميل؟",category:"العلامة والعرض",excerpt:"الهوية القوية لا تكتفي بأن تكون جميلة؛ هي تختصر على العميل مسافة الشك وتوضح لماذا يختارك.",body:["الهوية ليست طبقة تزيين فوق العمل. هي وعد مختصر يجيب عن سؤال العميل: لماذا هذا الخيار مناسب لي الآن؟ لذلك نبدأ دائماً بالعرض قبل الألوان."]},
@@ -21,6 +28,11 @@ export async function importExistingContent(){
  for(const page of pageData){
   if(existingPages.has("ar:"+page.slug))continue;
   await cmsSavePage({contentKey:page.slug,locale:"ar",slug:page.slug,title:page.title,summary:page.summary,status:"draft",sections:page.sections.map(([type,title,body],i)=>({id:page.slug+"-"+i,type,title,body,...(type==="cta"?{buttonLabel:"تواصل معنا",buttonUrl:"/contact"}:{})})),seoTitle:page.title+" | Business Owner",seoDescription:page.summary,robots:"index,follow"});
+  addedPages++;
+ }
+ for(const page of englishPages){
+  if(existingPages.has("en:"+page.slug))continue;
+  await cmsSavePage({contentKey:page.slug,locale:"en",slug:page.slug,title:page.title,summary:page.summary,status:"draft",sections:page.sections.map(([type,title,body],i)=>({id:page.slug+"-en-"+i,type,title,body,...(type==="cta"?{buttonLabel:"Contact us",buttonUrl:"/contact"}:{})})),seoTitle:page.title+" | Business Owner",seoDescription:page.summary,robots:"index,follow"});
   addedPages++;
  }
  for(const post of postData){
