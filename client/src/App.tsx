@@ -189,6 +189,37 @@ function ContactPage() { const [sent, setSent] = useState(false); const mutation
 
 type CmsTab = "overview" | "articles" | "services" | "leads";
 
+function AdminLogin() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!response.ok) throw new Error(response.status === 503 ? "لم يتم إعداد حساب الإدارة على الخادم بعد." : "بيانات الدخول غير صحيحة أو تم تقييد المحاولات.");
+      window.location.reload();
+    } catch (e) { setError(e instanceof Error ? e.message : "تعذر تسجيل الدخول."); }
+    finally { setLoading(false); }
+  };
+  return <section className="admin-wrap section-wrap"><form className="admin-access" onSubmit={submit} autoComplete="on">
+    <span className="section-kicker">BUSINESS OWNER / ADMIN</span>
+    <h1>تسجيل دخول الإدارة</h1>
+    <p>الدخول متاح لحساب المالك المصرّح له فقط.</p>
+    <label>البريد الإلكتروني<input required type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} /></label>
+    <label>كلمة المرور<input required type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} /></label>
+    {error && <p className="cms-error" role="alert">{error}</p>}
+    <button type="submit" className="primary-btn" disabled={loading}>{loading ? "جاري التحقق..." : "دخول لوحة التحكم"}</button>
+  </form></section>;
+}
+
 function AdminPage() {
   const [tab, setTab] = useState<CmsTab>("overview");
   const [showForm, setShowForm] = useState(false);
@@ -209,7 +240,7 @@ function AdminPage() {
   };
 
   if (me.isLoading) return <section className="admin-wrap section-wrap"><p>جاري التحقق من صلاحيات الدخول...</p></section>;
-  if (!authorized) return <section className="admin-wrap section-wrap"><div className="admin-access"><span className="section-kicker">منطقة خاصة</span><h1>لوحة التحكم للمصرح لهم فقط</h1><p>يجب تسجيل الدخول بحساب لديه صلاحية مدير للوصول للمحتوى والبيانات.</p><Link href="/"><button className="primary-btn">العودة للرئيسية</button></Link></div></section>;
+  if (!authorized) return <AdminLogin />;
   const articles = dashboard.data?.articles ?? [];
   const servicesData = dashboard.data?.services ?? [];
   const leadsData = dashboard.data?.leads ?? [];
