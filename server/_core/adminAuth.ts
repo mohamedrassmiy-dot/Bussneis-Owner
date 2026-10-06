@@ -55,6 +55,10 @@ export function isAdminSession(req: Request): boolean {
   } catch { return false; }
 }
 
+export function clearAdminSession(res: Response) {
+  res.clearCookie(COOKIE, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "strict", path: "/" });
+}
+
 function setSessionCookie(res: Response, token: string, maxAge: number) {
   res.cookie(COOKIE, token, {
     httpOnly: true, secure: process.env.NODE_ENV === "production",
@@ -90,7 +94,7 @@ export function registerAdminLogin(app: import("express").Express) {
     return res.json({ success: true });
   });
   app.post("/api/admin/logout", (req, res) => {
-    setSessionCookie(res, "", 0);
+    clearAdminSession(res);
     return res.json({ success: true });
   });
 }
