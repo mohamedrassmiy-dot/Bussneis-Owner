@@ -141,3 +141,5 @@
 .en-footer p{font-size:13px;color:#66738a}
 .en-footer a{color:#0867ff;font-weight:600}
 @media(max-width:850px){.en-header{padding:10px 4%;gap:12px}.en-logo img{width:145px;height:62px}.en-menu{display:grid;place-items:center;margin-left:auto;padding:8px}.en-nav{display:none;position:absolute;top:100%;left:0;right:0;background:white;z-index:40;padding:20px;box-shadow:0 14px 24px #0001}.en-nav.is-open{display:flex;flex-direction:column;align-items:stretch;gap:18px}.en-hero{grid-template-columns:1fr;gap:25px;padding:52px 5%}.en-hero h1{font-size:clamp(40px,9vw,62px)}.en-hero-image{min-height:230px;padding:24px}.en-grid{grid-template-columns:1fr}.en-section{padding:55px 5%}.en-card{min-height:180px}.en-footer{justify-content:flex-start}}
+
+@media(max-width:480px){.site-header .header-cta{display:none}.site-header .language-switch{margin-right:auto}.site-header .brand-mark{width:clamp(115px,38vw,158px)}.site-header .mobile-menu{order:3}}
