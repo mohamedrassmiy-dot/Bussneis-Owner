@@ -26,7 +26,7 @@ const safeCallToAction = z.string().max(2048).refine(value => {
 }, "Only HTTPS and site-relative links are allowed");
 const section = z.object({
   id:z.string().min(1).max(80),
-  type:z.enum(["hero","text","image","embed","cta","faq"]),
+  type:z.enum(["hero","text","image","embed","cta","faq","cards"]),
   title:z.string().max(300).optional(),
   body:z.string().max(50000).optional(),
   image:safeUrl.optional(),
@@ -34,6 +34,7 @@ const section = z.object({
   url:embedUrl.optional(),
   buttonLabel:z.string().max(150).optional(),
   buttonUrl:safeCallToAction.optional(),
+  cards:z.array(z.object({id:z.string().max(80),title:z.string().max(300),body:z.string().max(10000).optional(),image:safeUrl.optional(),alt:z.string().max(300).optional(),buttonLabel:z.string().max(100).optional(),buttonUrl:safeCallToAction.optional()})).max(24).optional(),
 });
 const seoFields={
   seoTitle:z.string().max(300).nullable().optional(),
