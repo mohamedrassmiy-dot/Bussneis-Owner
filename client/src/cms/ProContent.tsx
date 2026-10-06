@@ -4,8 +4,8 @@ import { FilePlus2,Search,RefreshCw,ExternalLink,Languages,Save,Eye,Trash2,Image
 import type {ProLanguage} from "../ProfessionalCMS";
 const t=(locale:ProLanguage,ar:string,en:string)=>locale==="ar"?ar:en;
 type Locale="ar"|"en";
-type SectionType="hero"|"text"|"image"|"embed"|"cta"|"faq";
-type Section={id:string;type:SectionType;title?:string;body?:string;image?:string;alt?:string;url?:string;buttonLabel?:string;buttonUrl?:string};
+type SectionType="hero"|"text"|"image"|"embed"|"cta"|"faq"|"cards";
+type Section={id:string;type:SectionType;title?:string;body?:string;image?:string;alt?:string;url?:string;buttonLabel?:string;buttonUrl?:string;cards?:Array<{id:string;title:string;body?:string;image?:string;alt?:string;buttonLabel?:string;buttonUrl?:string}>};
 type Embed={type:"video"|"iframe";url:string;title?:string};
 type RecordType={
  id?:number;contentKey:string;locale:Locale;slug:string;title:string;summary:string;excerpt:string;body:string;category:string;
@@ -103,14 +103,22 @@ function ContentEditor({kind,locale,entry,close,afterSave}:{kind:"page"|"post";l
        <button className="pro-btn compact" aria-label="Move section down" onClick={()=>move(i,i+1)} disabled={i===value.sections.length-1}><ArrowDown size={14}/></button>
        <button className="pro-btn compact danger" aria-label="Remove section" onClick={()=>set("sections",value.sections.filter((_,j)=>j!==i))}><Trash2 size={14}/></button></div></div>
        <div className="pro-form-stack">
-       <label className="pro-field"><span>{t(locale,"نوع القسم","Section type")}</span><select value={sec.type} onChange={e=>updateSection(i,"type",e.target.value)}>{(["hero","text","image","embed","cta","faq"] as const).map(type=><option value={type} key={type}>{type.toUpperCase()}</option>)}</select></label>
+       <label className="pro-field"><span>{t(locale,"نوع القسم","Section type")}</span><select value={sec.type} onChange={e=>updateSection(i,"type",e.target.value)}>{(["hero","text","image","embed","cta","faq","cards"] as const).map(type=><option value={type} key={type}>{type.toUpperCase()}</option>)}</select></label>
        <label className="pro-field"><span>{t(locale,"العنوان","Title")}</span><input value={sec.title||""} onChange={e=>updateSection(i,"title",e.target.value)}/></label>
        {sec.type!=="embed"&&<label className="pro-field"><span>{t(locale,"المحتوى","Body")}</span><textarea rows={4} value={sec.body||""} onChange={e=>updateSection(i,"body",e.target.value)}/></label>}
        {(sec.type==="hero"||sec.type==="image"||sec.type==="text")&&<><label className="pro-field ltr"><span>Image URL</span><input value={sec.image||""} onChange={e=>updateSection(i,"image",e.target.value)}/></label><label className="pro-field"><span>Image ALT</span><input value={sec.alt||""} onChange={e=>updateSection(i,"alt",e.target.value)}/></label><label className="pro-field"><span>{t(locale,"رفع صورة للقسم","Upload section image")}</span><input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading} onChange={e=>{const f=e.target.files?.[0];if(f)void upload(f,i);}}/></label>{sec.image&&<img src={sec.image} style={{maxWidth:260,maxHeight:160,objectFit:"contain"}} alt={sec.alt||""}/>}</>}
+       {sec.type==="cards"&&<div className="pro-form-stack">
+       <p className="pro-hint">{t(locale,"كل بطاقة لها عنوان ووصف وصورة ورابط مستقل.","Each card has its own title, text, image and link.")}</p>
+       {(sec.cards||[]).map((card,j)=><div key={card.id} className="pro-section-editor">
+        <div className="pro-section-heading" style={{marginTop:0}}><strong>Card {j+1}</strong><button className="pro-btn compact danger" onClick={()=>set("sections",value.sections.map((item,index)=>index===i?{...item,cards:(item.cards||[]).filter((_,k)=>k!==j)}:item))}><Trash2 size={13}/></button></div>
+        {(["title","body","image","alt","buttonLabel","buttonUrl"] as const).map(field=><label className={"pro-field "+(["image","buttonUrl"].includes(field)?"ltr":"")} key={field}><span>{field}</span><input value={card[field]||""} onChange={e=>set("sections",value.sections.map((item,index)=>index===i?{...item,cards:(item.cards||[]).map((c,k)=>k===j?{...c,[field]:e.target.value}:c)}:item))}/></label>)}
+       </div>)}
+       <button className="pro-btn" onClick={()=>set("sections",value.sections.map((item,index)=>index===i?{...item,cards:[...(item.cards||[]),{id:"card-"+crypto.randomUUID(),title:""}]}:item))}><Plus size={14}/>{t(locale,"إضافة بطاقة","Add card")}</button>
+      </div>}
        {sec.type==="embed"&&<label className="pro-field ltr"><span>HTTPS Embed URL (YouTube/Vimeo/Google/Figma)</span><input value={sec.url||""} onChange={e=>updateSection(i,"url",e.target.value)}/></label>}
        {sec.type==="cta"&&<><label className="pro-field"><span>{t(locale,"نص الزر","Button label")}</span><input value={sec.buttonLabel||""} onChange={e=>updateSection(i,"buttonLabel",e.target.value)}/></label><label className="pro-field ltr"><span>Destination URL (internal)</span><input value={sec.buttonUrl||""} onChange={e=>updateSection(i,"buttonUrl",e.target.value)}/></label></>}
        </div></div>)}
-      <div className="pro-actions">{(["hero","text","image","embed","cta","faq"] as const).map(type=><button className="pro-btn compact" key={type} onClick={()=>set("sections",[...value.sections,newSection(type)])}><Plus size={13}/>{type.toUpperCase()}</button>)}</div>
+      <div className="pro-actions">{(["hero","text","image","embed","cta","faq","cards"] as const).map(type=><button className="pro-btn compact" key={type} onClick={()=>set("sections",[...value.sections,newSection(type)])}><Plus size={13}/>{type.toUpperCase()}</button>)}</div>
      </div>}
      {editorTab==="media"&&<div className="pro-form-stack">
       {bind("Featured image URL","featuredImage")}<label className="pro-field"><span>{t(locale,"رفع صورة الغلاف","Upload featured image")}</span><input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploading} onChange={e=>{const f=e.target.files?.[0];if(f)void upload(f,"featuredImage");}}/></label>
