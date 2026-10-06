@@ -12,7 +12,7 @@ export async function restoreOriginalArticleDrafts() {
   for(const original of originalArticles){
     if(original.locale !== "ar") continue;
     const row=current.find(x=>x.locale==="ar" && x.slug===original.slug);
-    if(!row || row.status!=="draft" || row.title!==original.title) continue;
+    if(!row || !("body" in row) || row.status!=="draft" || row.title!==original.title) continue;
     if(row.body!==previousSeedBodies[original.slug]) continue;
     await cmsSavePost({ id:row.id, contentKey:row.contentKey, locale:row.locale,
       slug:row.slug, title:row.title, excerpt:row.excerpt, body:original.body.join("\n\n"), status:row.status });
