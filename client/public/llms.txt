@@ -1,0 +1,22 @@
+# Business Owner
+
+> Knowledge and advisory platform for business owners, entrepreneurs and decision-makers.
+
+Business Owner publishes practical frameworks about business strategy, business engineering, growth, marketing, distribution, ecommerce, SEO and AI visibility.
+
+## Core areas
+- Business strategy and business models
+- Business engineering and operating systems
+- Growth strategy and customer acquisition
+- Marketing consulting
+- SEO, AEO, GEO and AI visibility
+- Commercial agency and distribution
+- Digital transformation
+
+## Primary pages
+- /services
+- /articles
+- /about
+- /contact
+
+Canonical site: https://bussneis-owner-production.up.railway.app/

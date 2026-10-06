@@ -48,7 +48,7 @@ export async function listPublishedServices() {
   return db.select().from(services).where(eq(services.status, "published")).orderBy(services.sortOrder);
 }
 export async function createLead(input: InsertLead) {
-  const db = await getDb(); if (!db) return { persisted: false };
+  const db = await getDb(); if (!db) throw new Error("Lead storage is unavailable");
   await db.insert(leads).values(input); return { persisted: true };
 }
 export async function listAllArticles() { const db = await getDb(); return db ? db.select().from(articles).orderBy(desc(articles.createdAt)) : []; }
@@ -56,3 +56,25 @@ export async function listAllServices() { const db = await getDb(); return db ? 
 export async function listAllLeads() { const db = await getDb(); return db ? db.select().from(leads).orderBy(desc(leads.createdAt)) : []; }
 export async function insertArticle(input: InsertArticle) { const db = await getDb(); if (!db) return null; const result = await db.insert(articles).values(input); return result; }
 export async function insertService(input: InsertService) { const db = await getDb(); if (!db) return null; const result = await db.insert(services).values(input); return result; }
+
+export async function updateLeadStatus(id: number, status: "new" | "contacted" | "closed") {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(leads).set({ status }).where(eq(leads.id, id));
+  return { success: true };
+}
+
+export async function updateArticle(id: number, fields: Partial<InsertArticle>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const patch = { ...fields, ...(fields.status === "published" ? { publishedAt: new Date() } : {}) };
+  await db.update(articles).set(patch).where(eq(articles.id, id));
+  return { success: true };
+}
+
+export async function updateService(id: number, fields: Partial<InsertService>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(services).set(fields).where(eq(services.id, id));
+  return { success: true };
+}
