@@ -82,13 +82,18 @@ export async function updateService(id: number, fields: Partial<InsertService>) 
 /** CMS operations always fail explicitly if the persistent database is unavailable. */
 async function requiredDb() { const db = await getDb(); if (!db) throw new Error("CMS database is not configured"); return db; }
 export async function cmsList(kind:"page"|"post", publishedOnly=false, locale?:"ar"|"en") {
-  const db=await requiredDb(); const table=kind==="page"?cmsPages:cmsPosts;
-  const rows=await db.select().from(table).orderBy(desc(table.updatedAt));
+  const db=await requiredDb();
+  if(kind==="page") {
+    const rows=await db.select().from(cmsPages).orderBy(desc(cmsPages.updatedAt));
+    return rows.filter(x=>(!publishedOnly||x.status==="published")&&(!locale||x.locale===locale));
+  }
+  const rows=await db.select().from(cmsPosts).orderBy(desc(cmsPosts.updatedAt));
   return rows.filter(x=>(!publishedOnly||x.status==="published")&&(!locale||x.locale===locale));
 }
 export async function cmsGet(kind:"page"|"post", id:number) {
-  const db=await requiredDb();const table=kind==="page"?cmsPages:cmsPosts;
-  return (await db.select().from(table).where(eq(table.id,id)).limit(1))[0]??null;
+  const db=await requiredDb();
+  if(kind==="page")return (await db.select().from(cmsPages).where(eq(cmsPages.id,id)).limit(1))[0]??null;
+  return (await db.select().from(cmsPosts).where(eq(cmsPosts.id,id)).limit(1))[0]??null;
 }
 export async function cmsFindPublished(kind:"page"|"post",slug:string,locale:"ar"|"en") {
   const rows=await cmsList(kind,true,locale);
