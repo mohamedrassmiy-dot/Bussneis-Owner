@@ -1,4 +1,5 @@
 import {cmsList,cmsSavePage,cmsSavePost} from "./db";
+import {originalArticles,originalServices} from "./cmsLegacyData";
 /** Non-destructive import of original public content into editable CMS drafts.
  * Publishing a draft overrides its original route; existing site remains live until then. */
 const pageData=[
@@ -15,30 +16,45 @@ const englishPages=[
  {slug:"about",title:"About Business Owner",summary:"We believe clarity is an advantage.",sections:[["hero","Clarity is an advantage","Business Owner turns practical business knowledge into decisions that move real projects forward."]]},
  {slug:"contact",title:"Contact Us",summary:"Start a conversation about your business.",sections:[["hero","Let's talk about your business","Share your goals and challenges with us."]]},
 ] as const;
-const postData=[
- {slug:"growth-needs-a-system",title:"النمو لا يحتاج ضجيجاً أكثر؛ يحتاج نظاماً أوضح",category:"نمو الأعمال",excerpt:"حين تتوقف عن مطاردة كل فرصة وتبدأ في بناء مسار يمكن تكراره، يصبح النمو نتيجة مفهومة لا مفاجأة.",body:["كثير من أصحاب الأعمال يصفون مشكلتهم بأنها نقص في العملاء. لكن بعد أول محادثة نكتشف غالباً أن المشكلة ليست في الاهتمام؛ بل في غياب المسار الذي يحوّل الاهتمام إلى قرار.","النظام يبدأ بثلاثة أسئلة: من العميل الذي تستطيع خدمته فعلاً؟ ما المشكلة التي تقدر على شرحها ببساطة؟ وما الدليل الذي يجعل الخطوة التالية آمنة؟ عندما تجتمع هذه الإجابات، يصبح المحتوى امتداداً للفكرة وليس بديلاً عنها.","لا تحتاج أن تنشر أكثر. تحتاج أن تكرر فكرة نافعة بطرق مختلفة، وتربطها بدعوة واضحة، ثم تراجع ما الذي فتح محادثة حقيقية. هذا هو الفرق بين نشاط تسويقي ونظام نمو."]},
- {slug:"offer-before-logo",title:"قبل أن تسأل: كيف يبدو الشعار؟ اسأل: ماذا يفهم العميل؟",category:"العلامة والعرض",excerpt:"الهوية القوية لا تكتفي بأن تكون جميلة؛ هي تختصر على العميل مسافة الشك وتوضح لماذا يختارك.",body:["الهوية ليست طبقة تزيين فوق العمل. هي وعد مختصر يجيب عن سؤال العميل: لماذا هذا الخيار مناسب لي الآن؟ لذلك نبدأ دائماً بالعرض قبل الألوان."]},
- {slug:"the-90-day-decision",title:"قرار الـ90 يوماً: كيف تختار ما لن تفعله؟",category:"إدارة",excerpt:"خطة النمو ليست قائمة أمنيات. هي اتفاق شجاع على ترك بعض الأشياء حتى تعطي الأشياء المهمة فرصة حقيقية.",body:["خطة النمو ليست قائمة أمنيات؛ بل اختيار واضح للأولويات التي تستحق التنفيذ والمتابعة خلال تسعين يوماً."]},
-] as const;
 export async function importExistingContent(){
  const [pages,posts]=await Promise.all([cmsList("page"),cmsList("post")]);
  const existingPages=new Set(pages.map(x=>x.locale+":"+x.slug));
  const existingPosts=new Set(posts.map(x=>x.locale+":"+x.slug));
  let addedPages=0,addedPosts=0;
- for(const page of pageData){
-  if(existingPages.has("ar:"+page.slug))continue;
-  await cmsSavePage({contentKey:page.slug,locale:"ar",slug:page.slug,title:page.title,summary:page.summary,status:"draft",sections:page.sections.map(([type,title,body],i)=>({id:page.slug+"-"+i,type,title,body,...(type==="cta"?{buttonLabel:"تواصل معنا",buttonUrl:"/contact"}:{})})),seoTitle:page.title+" | Business Owner",seoDescription:page.summary,robots:"index,follow"});
-  addedPages++;
+ for(const [locale,list] of [["ar",pageData],["en",englishPages]] as const){
+   for(const page of list){
+     if(existingPages.has(locale+":"+page.slug))continue;
+     const sections=page.sections.map(([type,title,body],i)=>({
+       id:page.slug+"-"+locale+"-"+i,type,title,body,
+       ...(type==="cta"?{buttonLabel:locale==="ar"?"تواصل معنا":"Contact us",buttonUrl:locale==="ar"?"/contact":"/en/contact"}:{})
+     }));
+     await cmsSavePage({contentKey:page.slug,locale,slug:page.slug,title:page.title,summary:page.summary,status:"draft",sections,
+       seoTitle:page.title+" | Business Owner",seoDescription:page.summary,robots:"index,follow"});
+     existingPages.add(locale+":"+page.slug);addedPages++;
+   }
  }
- for(const page of englishPages){
-  if(existingPages.has("en:"+page.slug))continue;
-  await cmsSavePage({contentKey:page.slug,locale:"en",slug:page.slug,title:page.title,summary:page.summary,status:"draft",sections:page.sections.map(([type,title,body],i)=>({id:page.slug+"-en-"+i,type,title,body,...(type==="cta"?{buttonLabel:"Contact us",buttonUrl:"/contact"}:{})})),seoTitle:page.title+" | Business Owner",seoDescription:page.summary,robots:"index,follow"});
-  addedPages++;
+ for(const service of originalServices){
+   const slug="service-"+service.slug;
+   if(existingPages.has(service.locale+":"+slug))continue;
+   const sections=[
+     {id:slug+"-hero",type:"hero" as const,title:service.title,body:service.summary},
+     {id:slug+"-body",type:"text" as const,title:service.eyebrow,body:service.body},
+     ...service.bullets.map((point,i)=>({id:slug+"-point-"+i,type:"text" as const,title:point,body:point})),
+     {id:slug+"-cta",type:"cta" as const,title:service.locale==="ar"?"لنتحدث عن هذا المسار":"Discuss this service",
+       body:service.summary,buttonLabel:service.locale==="ar"?"راسلنا":"Contact us",
+       buttonUrl:service.locale==="ar"?"/contact":"/en/contact"}
+   ];
+   await cmsSavePage({contentKey:slug,locale:service.locale,slug,title:service.title,summary:service.summary,status:"draft",sections,
+     seoTitle:service.title+" | Business Owner",seoDescription:service.summary,robots:"index,follow"});
+   existingPages.add(service.locale+":"+slug);addedPages++;
  }
- for(const post of postData){
-  if(existingPosts.has("ar:"+post.slug))continue;
-  await cmsSavePost({contentKey:post.slug,locale:"ar",slug:post.slug,title:post.title,excerpt:post.excerpt,body:post.body.join("\n\n"),category:post.category,status:"draft",seoTitle:post.title+" | Business Owner",seoDescription:post.excerpt,robots:"index,follow",embeds:[]});
-  addedPosts++;
+ for(const post of originalArticles){
+   if(existingPosts.has(post.locale+":"+post.slug))continue;
+   await cmsSavePost({contentKey:post.slug,locale:post.locale,slug:post.slug,title:post.title,excerpt:post.excerpt,
+     body:post.body.join("\n\n"),category:post.category,status:"draft",seoTitle:post.title+" | Business Owner",
+     seoDescription:post.excerpt,robots:"index,follow",embeds:[]});
+   existingPosts.add(post.locale+":"+post.slug);addedPosts++;
  }
- return {addedPages,addedPosts,existingPages:pages.length,existingPosts:posts.length,note:"Imported as drafts; publishing replaces the original route only after review."};
+ return {addedPages,addedPosts,totalPages:existingPages.size,totalPosts:existingPosts.size,
+   note:"Content added as editable drafts. Existing CMS records are never overwritten."};
 }
