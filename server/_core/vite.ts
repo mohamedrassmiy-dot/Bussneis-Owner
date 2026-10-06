@@ -62,7 +62,18 @@ export function serveStatic(app: Express) {
   app.use(express.static(distPath, { index: false }));
 
   // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  app.use("*", async (_req, res, next) => {
+    try {
+      let html = await fs.promises.readFile(path.resolve(distPath, "index.html"), "utf8");
+      try {
+        const settings = await cmsGetSettings();
+        const token = settings.find(item => item.key === "google_site_verification")?.value || "";
+        if (/^[A-Za-z0-9_-]{10,150}$/.test(token)) {
+          const meta = '<meta name="google-site-verification" content="' + token + '">';
+          html = html.replace("</head>", meta + "</head>");
+        }
+      } catch { /* Keep the public site available if the database is down. */ }
+      res.set("Cache-Control", "no-store").type("html").send(html);
+    } catch (error) { next(error); }
   });
 }
