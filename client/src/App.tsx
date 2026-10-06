@@ -1,3 +1,4 @@
+import FullCMS from "./FullCMS";
 import { useMemo, useState } from "react";
 import { Link, Route, Switch, useLocation } from "wouter";
 import {
@@ -221,75 +222,12 @@ function AdminLogin() {
 }
 
 function AdminPage() {
-  const [tab, setTab] = useState<CmsTab>("overview");
-  const [showForm, setShowForm] = useState(false);
-  const [kind, setKind] = useState<"article" | "service">("article");
-  const [editing, setEditing] = useState<{ kind: "article" | "service"; id: number } | null>(null);
-  const [publish, setPublish] = useState(false);
-  const [draft, setDraft] = useState({ title: "", slug: "", summary: "", body: "", category: "إدارة الأعمال" });
-  const utils = trpc.useUtils();
-  const me = trpc.auth.me.useQuery();
-  const authorized = me.data?.role === "admin";
-  const dashboard = trpc.admin.dashboard.useQuery(undefined, { enabled: authorized });
-  const createArticle = trpc.admin.createArticle.useMutation({ onSuccess: async () => { await utils.admin.dashboard.invalidate(); setShowForm(false); setDraft({title:"", slug:"", summary:"", body:"", category:"إدارة الأعمال"}); } });
-  const createService = trpc.admin.createService.useMutation({ onSuccess: async () => { await utils.admin.dashboard.invalidate(); setShowForm(false); setDraft({title:"", slug:"", summary:"", body:"", category:"إدارة الأعمال"}); } });
-  const leadStatus = trpc.admin.updateLeadStatus.useMutation({ onSuccess: () => utils.admin.dashboard.invalidate() });
-  const resetEditor = () => { setShowForm(false); setEditing(null); setPublish(false); setDraft({title:"", slug:"", summary:"", body:"", category:"إدارة الأعمال"}); utils.admin.dashboard.invalidate(); };
-  const editArticle = trpc.admin.updateArticle.useMutation({ onSuccess: resetEditor });
-  const editService = trpc.admin.updateService.useMutation({ onSuccess: resetEditor });
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const base = { title: draft.title.trim(), slug: draft.slug.trim(), body: draft.body.trim(), status: (publish ? "published" : "draft") as "published" | "draft" };
-    if (kind === "article") {
-      const data = { ...base, excerpt: draft.summary.trim(), category: draft.category.trim(), readTime: 5 };
-      if (editing) editArticle.mutate({ id: editing.id, data });
-      else createArticle.mutate(data);
-    } else {
-      const data = { ...base, summary: draft.summary.trim(), sortOrder: 0 };
-      if (editing) editService.mutate({ id: editing.id, data });
-      else createService.mutate(data);
-    }
-  };
-
-  const startArticleEdit = (a: { id: number; title: string; slug: string; excerpt: string; body: string; category: string; status: string }) => {
-    setKind("article"); setEditing({ kind: "article", id: a.id });
-    setDraft({title:a.title, slug:a.slug, summary:a.excerpt, body:a.body, category:a.category});
-    setPublish(a.status === "published"); setShowForm(true);
-  };
-  const startServiceEdit = (a: { id: number; title: string; slug: string; summary: string; body: string; status: string }) => {
-    setKind("service"); setEditing({kind:"service",id:a.id});
-    setDraft({title:a.title, slug:a.slug, summary:a.summary, body:a.body, category:"إدارة الأعمال"});
-    setPublish(a.status === "published"); setShowForm(true);
-  };
-  if (me.isLoading) return <section className="admin-wrap section-wrap"><p>جاري التحقق من صلاحيات الدخول...</p></section>;
-  if (!authorized) return <AdminLogin />;
-  const articles = dashboard.data?.articles ?? [];
-  const servicesData = dashboard.data?.services ?? [];
-  const leadsData = dashboard.data?.leads ?? [];
-  const statusLabel: Record<string, string> = { new: "جديد", contacted: "تم التواصل", closed: "مغلق" };
-  return <section className="admin-wrap section-wrap">
-    <div className="admin-head"><div><span className="section-kicker">BUSINESS OWNER CMS</span><h1>إدارة <em>المعرفة والنمو.</em></h1></div><button className="primary-btn" onClick={() => { setEditing(null); setPublish(false); setDraft({title:"",slug:"",summary:"",body:"",category:"إدارة الأعمال"}); setShowForm(true); }}><Plus size={17} /> إضافة محتوى</button></div>
-    <div className="admin-shell">
-      <aside className="admin-sidebar"><div className="admin-user"><div className="avatar">BO</div><div><strong>{me.data?.name || "مدير النظام"}</strong><small>Administrator</small></div></div><button type="button" onClick={async () => { await fetch("/api/admin/logout", { method: "POST", credentials: "same-origin" }); window.location.reload(); }}>تسجيل الخروج</button>
-        {([["overview", <LayoutDashboard size={16} />, "نظرة عامة"], ["articles", <FileText size={16} />, "المقالات"], ["services", <BriefcaseBusiness size={16} />, "الخدمات"], ["leads", <Inbox size={16} />, "العملاء المحتملون"]] as const).map(([key, icon, label]) => <button key={key} className={tab === key ? "active" : ""} onClick={() => setTab(key)}>{icon}{label}</button>)}
-      </aside>
-      <div className="admin-main">
-        <div className="admin-toolbar"><span>بيانات فعلية من قاعدة البيانات</span><button onClick={() => dashboard.refetch()}>تحديث البيانات</button></div>
-        {dashboard.isLoading && <p>جاري تحميل البيانات...</p>}
-        {dashboard.error && <p role="alert" className="cms-error">تعذر تحميل بيانات لوحة التحكم: {dashboard.error.message}</p>}
-        {!dashboard.isLoading && !dashboard.error && <>
-          {tab === "overview" && <div className="stat-grid"><div><small>المقالات المنشورة</small><strong>{articles.filter(a => a.status === "published").length}</strong><span>{articles.length} إجمالي المقالات</span></div><div><small>الخدمات المنشورة</small><strong>{servicesData.filter(x => x.status === "published").length}</strong><span>{servicesData.length} إجمالي الخدمات</span></div><div><small>طلبات جديدة</small><strong>{leadsData.filter(x => x.status === "new").length}</strong><span>{leadsData.length} إجمالي الطلبات</span></div></div>}
-          {tab === "articles" && <div className="content-list"><div className="list-heading"><FileText/><h2>المقالات</h2><span>{articles.length} عناصر</span></div>{articles.length === 0 && <p className="cms-empty">لا توجد مقالات محفوظة حتى الآن.</p>}{articles.map((a) => <div className="content-item" key={a.id}><span>#{a.id}</span><strong>{a.title}</strong><small>{a.status === "published" ? "منشور" : "مسودة"}</small><button type="button" aria-label="تعديل المقال" onClick={() => startArticleEdit(a)}><PenLine size={16}/></button></div>)}</div>}
-          {tab === "services" && <div className="content-list"><div className="list-heading"><BriefcaseBusiness/><h2>الخدمات</h2><span>{servicesData.length} عناصر</span></div>{servicesData.length === 0 && <p className="cms-empty">لا توجد خدمات محفوظة حتى الآن.</p>}{servicesData.map((item) => <div className="content-item" key={item.id}><span>#{item.id}</span><strong>{item.title}</strong><small>{item.status === "published" ? "منشور" : "مسودة"}</small><button type="button" aria-label="تعديل الخدمة" onClick={() => startServiceEdit(item)}><PenLine size={16}/></button></div>)}</div>}
-          {tab === "leads" && <div className="content-list"><div className="list-heading"><Inbox/><h2>العملاء المحتملون</h2><span>{leadsData.length} طلبات</span></div>{leadsData.length === 0 && <p className="cms-empty">لا توجد طلبات حالياً.</p>}{leadsData.map((lead) => <div key={lead.id} className="cms-lead"><div><strong>{lead.name}</strong><p><a href={`mailto:${lead.email}`}>{lead.email}</a> · {lead.company || "فرد"}</p><p>{lead.message}</p><small>{lead.service || "طلب عام"}</small></div><label>حالة الطلب<select value={lead.status} disabled={leadStatus.isPending} onChange={e => leadStatus.mutate({ id: lead.id, status: e.target.value as "new" | "contacted" | "closed" })}><option value="new">{statusLabel.new}</option><option value="contacted">{statusLabel.contacted}</option><option value="closed">{statusLabel.closed}</option></select></label></div>)}</div>}
-        </>}
-      </div>
-    </div>
-    {showForm && <div className="modal-backdrop" onClick={() => setShowForm(false)}><form className="cms-modal" onSubmit={submit} onClick={e => e.stopPropagation()}><button className="modal-close" type="button" onClick={() => setShowForm(false)} aria-label="إغلاق"><X /></button><span className="section-kicker">محتوى جديد</span><h2>{editing ? "تعديل المحتوى" : "إنشاء محتوى"}</h2><label>نوع المحتوى<select value={kind} disabled={!!editing} onChange={e => setKind(e.target.value as "article" | "service")}><option value="article">مقال</option><option value="service">خدمة</option></select></label><label>العنوان<input required minLength={3} value={draft.title} onChange={e => setDraft({...draft,title:e.target.value})}/></label><label>Slug باللغة الإنجليزية<input required minLength={2} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" dir="ltr" value={draft.slug} onChange={e => setDraft({...draft,slug:e.target.value.toLowerCase()})}/></label><label>الوصف المختصر<textarea required minLength={10} rows={2} value={draft.summary} onChange={e => setDraft({...draft,summary:e.target.value})}/></label>{kind === "article" && <label>التصنيف<input required minLength={2} value={draft.category} onChange={e => setDraft({...draft,category:e.target.value})}/></label>}<label>المحتوى<textarea required minLength={10} rows={7} value={draft.body} onChange={e => setDraft({...draft,body:e.target.value})}/></label><label className="cms-publish"><input type="checkbox" checked={publish} onChange={e => setPublish(e.target.checked)} /> نشر المحتوى مباشرة</label>
-      {(createArticle.error || createService.error || editArticle.error || editService.error) && <p role="alert" className="cms-error">{(createArticle.error || createService.error || editArticle.error || editService.error)?.message}</p>}<button className="primary-btn" type="submit" disabled={createArticle.isPending || createService.isPending || editArticle.isPending || editService.isPending}>{editing ? "حفظ التعديلات" : publish ? "نشر المحتوى" : "حفظ مسودة"} <Check size={16}/></button></form></div>}
-  </section>;
+  const auth=trpc.auth.me.useQuery();
+  if(auth.isLoading)return <section className="admin-wrap section-wrap"><p>جاري التحقق من الحساب...</p></section>;
+  if(auth.data?.role!=="admin")return <AdminLogin/>;
+  return <FullCMS/>;
 }
-function Router() { return <Switch><Route path="/" component={Home} /><Route path="/services" component={ServicesPage} /><Route path="/services/:slug">{(params) => <ServiceDetail slug={params.slug} />}</Route><Route path="/articles" component={ArticlesPage} /><Route path="/articles/:slug">{(params) => <ArticleDetail slug={params.slug} />}</Route><Route path="/about" component={AboutPage} /><Route path="/contact" component={ContactPage} /><Route path="/admin" component={AdminPage} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>; }
+function Router() { return <Switch><Route path="/" component={Home} /><Route path="/services" component={ServicesPage} /><Route path="/services/:slug">{(params) => <ServiceDetail slug={params.slug} />}</Route><Route path="/articles" component={ArticlesPage} /><Route path="/articles/:slug">{(params) => <ArticleDetail slug={params.slug} />}</Route><Route path="/about" component={AboutPage} /><Route path="/contact" component={ContactPage} /><Route path="/Admin" component={AdminPage} /><Route path="/admin" component={AdminPage} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>; }
 
 function App() { return <ErrorBoundary><ThemeProvider defaultTheme="light"><TooltipProvider><Toaster /><Shell><Router /></Shell></TooltipProvider></ThemeProvider></ErrorBoundary>; }
 export default App;
