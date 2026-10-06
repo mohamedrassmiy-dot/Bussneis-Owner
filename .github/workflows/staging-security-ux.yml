@@ -16,6 +16,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install dependencies for unit security tests
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.18.0 --activate
+          pnpm install --frozen-lockfile
+      - name: Run security regression and existing tests
+        run: pnpm test
+      - name: Typecheck latest source
+        run: pnpm check
       - name: Install isolated Playwright and axe-core
         run: |
           mkdir -p /tmp/business-owner-qa
