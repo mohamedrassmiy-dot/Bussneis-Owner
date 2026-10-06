@@ -21,7 +21,7 @@ const section = z.object({
   type:z.enum(["hero","text","image","embed","cta","faq"]),
   title:z.string().max(300).optional(),
   body:z.string().max(50000).optional(),
-  image:safeImage,
+  image:safeUrl.optional(),
   alt:z.string().max(300).optional(),
   url:embedUrl.optional(),
   buttonLabel:z.string().max(150).optional(),
