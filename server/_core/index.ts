@@ -10,6 +10,7 @@ import { publicPlatformScript } from "./publicConfig";
 import { appRouter } from "../routers";
 import { cmsGetSettings, cmsList } from "../db";
 import { registerCmsMedia } from "./cmsMedia";
+import { proFindRedirect } from "../cmsProfessionalDb";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 
@@ -62,6 +63,20 @@ async function startServer() {
       if(name!==req.path.slice(1)||content!==`google-site-verification: ${name}`)return next();
       res.set("Cache-Control","public, max-age=300").type("text/plain; charset=utf-8").send(content);
     }catch{next()}
+  });
+  // Active, admin-managed internal 301/302 redirects: before the SPA fallback.
+  app.use(async(req,res,next)=>{
+    if(req.method!=="GET" && req.method!=="HEAD")return next();
+    if(!/^\/[a-zA-Z0-9][a-zA-Z0-9/_-]{0,239}$/.test(req.path))return next();
+    if(/^\/(api|media|Admin|admin)(\/|$)/i.test(req.path))return next();
+    try{
+      const redirect=await proFindRedirect(req.path);
+      if(redirect && redirect.destination!==req.path){
+        res.set("Cache-Control","public,max-age=300");
+        return res.redirect(redirect.type==="301"?301:302,redirect.destination);
+      }
+    }catch(err){console.warn("[Redirect] lookup failed",err instanceof Error?err.message:String(err));}
+    next();
   });
   registerAdminLogin(app);
   registerCmsMedia(app);
