@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, json } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -64,3 +64,53 @@ export type Service = typeof services.$inferSelect;
 export type InsertService = typeof services.$inferInsert;
 export type Lead = typeof leads.$inferSelect;
 export type InsertLead = typeof leads.$inferInsert;
+
+/** Full bilingual CMS — one localized record per language, shared content key. */
+export const cmsPages = mysqlTable("cms_pages", {
+  id: int("id").autoincrement().primaryKey(),
+  contentKey: varchar("content_key", { length: 120 }).notNull(),
+  locale: mysqlEnum("locale", ["ar", "en"]).notNull(),
+  slug: varchar("slug", { length: 180 }).notNull(),
+  title: varchar("title", { length: 300 }).notNull(),
+  summary: text("summary"),
+  featuredImage: text("featured_image"),
+  imageAlt: varchar("image_alt", { length: 300 }),
+  sections: json("sections").$type<Array<{ id: string; type: "hero"|"text"|"image"|"embed"|"cta"|"faq"; title?: string; body?: string; image?: string; alt?: string; url?: string; buttonLabel?: string; buttonUrl?: string }>>().notNull(),
+  seoTitle: varchar("seo_title", { length: 300 }),
+  seoDescription: text("seo_description"),
+  canonicalUrl: text("canonical_url"),
+  robots: varchar("robots", { length: 100 }).default("index,follow"),
+  ogImage: text("og_image"),
+  schemaJson: text("schema_json"),
+  status: mysqlEnum("status", ["draft","published"]).default("draft").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+export const cmsPosts = mysqlTable("cms_posts", {
+  id: int("id").autoincrement().primaryKey(),
+  contentKey: varchar("content_key", { length: 120 }).notNull(),
+  locale: mysqlEnum("locale", ["ar", "en"]).notNull(),
+  slug: varchar("slug", { length: 180 }).notNull(),
+  title: varchar("title", { length: 300 }).notNull(),
+  excerpt: text("excerpt").notNull(),
+  body: text("body").notNull(),
+  category: varchar("category", { length: 120 }),
+  featuredImage: text("featured_image"),
+  imageAlt: varchar("image_alt", { length: 300 }),
+  embeds: json("embeds").$type<Array<{type:"video"|"iframe";url:string;title?:string}>>(),
+  seoTitle: varchar("seo_title", { length: 300 }),
+  seoDescription: text("seo_description"),
+  canonicalUrl: text("canonical_url"),
+  robots: varchar("robots", { length: 100 }).default("index,follow"),
+  ogImage: text("og_image"),
+  schemaJson: text("schema_json"),
+  status: mysqlEnum("status", ["draft","published"]).default("draft").notNull(),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+export const cmsSettings = mysqlTable("cms_settings", {
+  key: varchar("key", { length: 120 }).primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
