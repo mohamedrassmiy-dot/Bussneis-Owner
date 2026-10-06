@@ -116,15 +116,54 @@ export function ProSecurity({locale}:{locale:ProLanguage}){
  const user=trpc.auth.me.useQuery();
  const log=trpc.pro.security.useQuery();
  const logout=trpc.auth.logout.useMutation({onSuccess:()=>window.location.reload()});
+ const [currentPassword,setCurrentPassword]=useState("");
+ const [newPassword,setNewPassword]=useState("");
+ const [confirmPassword,setConfirmPassword]=useState("");
+ const [pending,setPending]=useState(false);
+ const [notice,setNotice]=useState("");
+ const changePassword=async()=>{
+  setNotice("");
+  if(newPassword.length<12||newPassword!==confirmPassword){setNotice(tx(locale,"يجب أن تتكون كلمة المرور من 12 حرفًا على الأقل وأن تتطابق مع التأكيد.","Use at least 12 characters and match the confirmation."));return;}
+  setPending(true);
+  try{
+   const res=await fetch("/api/admin/change-password",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({currentPassword,newPassword})});
+   const data=await res.json();
+   if(!res.ok)throw new Error(data.error||"Password change failed");
+   setCurrentPassword("");setNewPassword("");setConfirmPassword("");
+   alert(tx(locale,"تم تغيير كلمة المرور، ويجب تسجيل الدخول مجددًا.","Password changed. Please sign in again."));
+   window.location.reload();
+  }catch(error){setNotice(error instanceof Error?error.message:String(error));}
+  finally{setPending(false);}
+ };
+ const revokeOthers=async()=>{
+  if(!confirm(tx(locale,"سيتم إبطال الجلسات القديمة والإبقاء على جلستك الحالية. متابعة؟","Other admin sessions will be invalidated. Continue?")))return;
+  setPending(true);setNotice("");
+  try{
+   const res=await fetch("/api/admin/logout-others",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:"{}"});
+   const data=await res.json();if(!res.ok)throw new Error(data.error||"Unable to revoke sessions");
+   setNotice(tx(locale,"تم إبطال الجلسات الأخرى.","Other sessions have been invalidated."));await log.refetch();
+  }catch(error){setNotice(String(error));}
+  finally{setPending(false);}
+ };
  return <div className="pro-form-stack">
-  <section className="pro-card"><h2>{tx(locale,"الجلسة الحالية","Current session")}</h2><p>{tx(locale,"حساب الإدارة","Admin account")}: <strong>{user.data?.email||"—"}</strong></p>
-   <p className="pro-hint">{tx(locale,"جلسة المتصفح محمية بـHttpOnly وSameSite Strict وتنتهي تلقائيًا بعد 8 ساعات. يمكن تسجيل الخروج لإبطال ملف تعريف الارتباط في هذا المتصفح.","Your browser uses an HttpOnly, SameSite Strict cookie that expires after 8 hours. Logging out clears it on this device.")}</p>
-   <div className="pro-actions"><button className="pro-btn danger" onClick={()=>logout.mutate()} disabled={logout.isPending}><LogOut size={16}/>{tx(locale,"تسجيل خروج من هذه الجلسة","Log out current session")}</button></div>
+  {notice&&<div className="pro-notice" role="status">{notice}</div>}
+  <section className="pro-card"><h2>{tx(locale,"تغيير كلمة المرور","Change password")}</h2>
+   <p className="pro-hint">{tx(locale,"يُطلب إدخال كلمة المرور الحالية، ثم تُحفظ الجديدة مشفّرة باستخدام scrypt. تغيير كلمة المرور يبطل الجلسات القديمة.","The old password is verified before storing a new scrypt password hash. Existing sessions are invalidated.")}</p>
+   <div className="pro-form-stack" style={{maxWidth:550}}>
+    <label className="pro-field"><span>{tx(locale,"كلمة المرور الحالية","Current password")}</span><input type="password" autoComplete="current-password" value={currentPassword} onChange={e=>setCurrentPassword(e.target.value)}/></label>
+    <label className="pro-field"><span>{tx(locale,"كلمة المرور الجديدة","New password")}</span><input type="password" autoComplete="new-password" value={newPassword} onChange={e=>setNewPassword(e.target.value)}/></label>
+    <label className="pro-field"><span>{tx(locale,"تأكيد كلمة المرور الجديدة","Confirm new password")}</span><input type="password" autoComplete="new-password" value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)}/></label>
+    <button className="pro-btn primary" disabled={pending||!currentPassword||!newPassword||!confirmPassword} onClick={changePassword}><ShieldCheck size={16}/>{tx(locale,"تغيير كلمة المرور","Update password")}</button>
+   </div></section>
+  <section className="pro-card"><h2>{tx(locale,"الجلسات والأمان","Sessions & account security")}</h2>
+   <div className="pro-stat" style={{maxWidth:430,marginBottom:18}}><small>{tx(locale,"جلسة المدير الحالية","Current admin session")}</small><strong style={{fontSize:24}}>1</strong><p className="pro-muted">{user.data?.email||"—"}</p></div>
+   <p className="pro-hint">{tx(locale,"الجلسات محمية بـHttpOnly وSameSite Strict؛ إبطال الجلسات الأخرى يُغيّر إصدار الجلسة على الخادم.","HttpOnly / SameSite Strict session cookies; server-side version rotation invalidates earlier sessions.")}</p>
+   <div className="pro-actions"><button className="pro-btn danger" disabled={pending} onClick={revokeOthers}>{tx(locale,"إبطال الجلسات الأخرى","Revoke other sessions")}</button><button className="pro-btn" disabled={logout.isPending} onClick={()=>logout.mutate()}><LogOut size={16}/>{tx(locale,"تسجيل الخروج","Log out")}</button></div>
   </section>
-  <section className="pro-card"><h2>{tx(locale,"سجل محاولات الدخول","Sign-in activity")}</h2><p className="pro-hint">{tx(locale,"يُخزَّن بصمة مشفّرة للعنوان بدلًا من حفظ عنوان IP الخام.","Stores a one-way fingerprint rather than the raw IP address.")}</p>
-  {log.isError&&<div className="pro-notice error">{log.error.message}</div>}
-  {!log.data?.length?<div className="pro-empty">{tx(locale,"لا توجد أحداث أمنية مسجلة.","No security events have been recorded.")}</div>:<div className="pro-table-scroll"><table className="pro-table"><thead><tr><th>{tx(locale,"الحدث","Event")}</th><th>IP fingerprint</th><th>{tx(locale,"الوقت","Time")}</th></tr></thead><tbody>{log.data.map(x=><tr key={x.id}><td><span className="pro-tag">{x.action}</span></td><td style={{direction:"ltr"}}>{x.ipFingerprint.slice(0,12)}…</td><td>{new Date(x.createdAt).toLocaleString(locale==="ar"?"ar-SA":"en-US")}</td></tr>)}</tbody></table></div>}
- </section>
+  <section className="pro-card"><h2>{tx(locale,"سجل محاولات الدخول","Security event log")}</h2><p className="pro-hint">{tx(locale,"عناوين IP محفوظة كبصمة مشفّرة، وليس كنص خام.","IP addresses are stored as hashes, not raw strings.")}</p>
+    {log.isError&&<div className="pro-notice error">{log.error.message}</div>}
+    {!log.data?.length?<div className="pro-empty">{tx(locale,"لا توجد أحداث أمنية مسجلة.","No security events recorded.")}</div>:<div className="pro-table-scroll"><table className="pro-table"><thead><tr><th>{tx(locale,"الحدث","Event")}</th><th>IP fingerprint</th><th>{tx(locale,"الوقت","Time")}</th></tr></thead><tbody>{log.data.map(x=><tr key={x.id}><td><span className="pro-tag">{x.action}</span></td><td style={{direction:"ltr"}}>{x.ipFingerprint.slice(0,12)}…</td><td>{new Date(x.createdAt).toLocaleString(locale==="ar"?"ar-SA":"en-US")}</td></tr>)}</tbody></table></div>}
+  </section>
  </div>;
 }
 export function ProActivity({locale}:{locale:ProLanguage}){
