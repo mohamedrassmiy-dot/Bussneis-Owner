@@ -57,3 +57,10 @@ export function CmsOverride({slug,locale,children}:{slug:string;locale:Locale;ch
  if(result.data)return <CmsPage slug={slug} locale={locale}/>;
  return <>{children}</>;
 }
+
+/** Existing article URL remains unchanged while published CMS edits take priority. */
+export function CmsPostOverride({slug,locale,children}:{slug:string;locale:Locale;children:ReactNode}){
+ const result=trpc.cms.publishedPost.useQuery({slug,locale},{retry:false});
+ if(result.data)return <CmsPost slug={slug} locale={locale}/>;
+ return <>{children}</>;
+}
