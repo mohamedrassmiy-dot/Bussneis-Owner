@@ -1,3 +1,4 @@
+import EnglishContactForm from "./EnglishContactForm";
 import { CmsOverride } from "./CmsPublic";
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
@@ -34,7 +35,7 @@ export default function EnglishSite(){
   {p==="articles"&&<section className="en-section">{title("Business insights & practical thinking")}<div className="en-grid">{articles.map(x=><div key={x.slug}>{card(x.title,x.excerpt,"/en/articles/"+x.slug)}</div>)}</div></section>}
   {article&&<article className="en-section en-detail">{title(article.title)}<p className="en-lead">{article.excerpt}</p>{article.body.map(x=><p key={x}>{x}</p>)}<a className="en-button" href={mail("Discuss: "+article.title)}>Turn this idea into action <ArrowUpRight size={17}/></a></article>}
   {p==="about"&&<section className="en-section en-detail">{title("About Business Owner")}<p className="en-lead">Business Owner is a practical knowledge and advisory platform for entrepreneurs, owners and decision-makers.</p><p>We believe that clarity is a competitive advantage. We connect business strategy, positioning, marketing and growth into decisions teams can execute.</p><p>Our approach is simple: understand, analyze, design, execute and improve.</p><a className="en-button" href={mail("Business Owner introduction")}>Get in touch <Mail size={17}/></a></section>}
-  {p==="contact"&&<section className="en-section en-detail">{title("Let's talk about your business")}<p className="en-lead">Tell us what you are building or where you feel stuck. A short email is enough to start.</p><a className="en-button" href={mail("Business Owner inquiry")}>Email us <Mail size={17}/></a><p><a href={"mailto:"+email}>{email}</a></p></section>}
+  {p==="contact"&&<section className="en-section en-detail">{title("Let's talk about your business")}<p className="en-lead">Tell us what you are building or where you feel stuck. A short email is enough to start.</p><EnglishContactForm/><p>Or email us directly: <a href={"mailto:"+email}>{email}</a></p></section>}
   {p && !["services","articles","about","contact"].includes(p) && !service && !article && <section className="en-section en-detail">{title("Page not found")}<Link href="/en">Back to home</Link></section>}
   </CmsOverride></main><footer className="en-footer"><img src={logo} alt="Business Owner"/><p>Better decisions. Sustainable growth.</p><a href={"mailto:"+email}>{email}</a><Link href="/">العربية</Link></footer>
  </div>;
