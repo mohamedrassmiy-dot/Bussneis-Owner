@@ -1,3 +1,4 @@
+import { importExistingContent } from "./cmsImport";
 import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -66,6 +67,7 @@ export const appRouter = router({
     publishedPosts:publicProcedure.input(z.object({locale})).query(({input})=>cmsList("post",true,input.locale)),
     publishedPage:publicProcedure.input(z.object({locale,slug:z.string()})).query(({input})=>cmsFindPublished("page",input.slug,input.locale)),
     publishedPost:publicProcedure.input(z.object({locale,slug:z.string()})).query(({input})=>cmsFindPublished("post",input.slug,input.locale)),
+    importExisting:adminProcedure.mutation(()=>importExistingContent()),
     pages:adminProcedure.query(()=>cmsList("page")),
     posts:adminProcedure.query(()=>cmsList("post")),
     settings:adminProcedure.query(()=>cmsGetSettings()),
