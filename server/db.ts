@@ -48,7 +48,7 @@ export async function listPublishedServices() {
   return db.select().from(services).where(eq(services.status, "published")).orderBy(services.sortOrder);
 }
 export async function createLead(input: InsertLead) {
-  const db = await getDb(); if (!db) return { persisted: false };
+  const db = await getDb(); if (!db) throw new Error("Lead storage is unavailable");
   await db.insert(leads).values(input); return { persisted: true };
 }
 export async function listAllArticles() { const db = await getDb(); return db ? db.select().from(articles).orderBy(desc(articles.createdAt)) : []; }
