@@ -1,4 +1,5 @@
 import { importExistingContent } from "./cmsImport";
+import { proDashboard,proRedirectList,proSaveRedirect,proRemoveRedirect,proMediaList,proSetMediaAlt,proAudit,proAuditList,proSecurityList,proLeadList,proUpdateLead,proSeoAudit,proPublicSettings } from "./cmsProfessionalDb";
 import { z } from "zod";
 import { assertLeadRateLimit } from "./_core/leadRateLimit";
 import { clearAdminSession } from "./_core/adminAuth";
@@ -55,7 +56,7 @@ const baseCms = {
 };
 const cmsPageInput=z.object({...baseCms,summary:z.string().max(3000).optional().nullable(),sections:z.array(section).max(80)});
 const cmsPostInput=z.object({...baseCms,excerpt:z.string().min(10),body:z.string().min(10),category:z.string().max(120).optional().nullable(),embeds:z.array(z.object({type:z.enum(["video","iframe"]),url:embedUrl,title:z.string().max(200).optional()})).max(20).optional().nullable()});
-const settingInput=z.object({key:z.enum(["site_name_ar","site_name_en","site_description_ar","site_description_en","default_og_image","google_site_verification","gsc_verification_file_name","gsc_verification_file_content","robots_txt","head_embed","footer_embed"]),value:z.string().max(30000)});
+const settingInput=z.object({key:z.enum(["site_name_ar","site_name_en","site_description_ar","site_description_en","default_og_image","google_site_verification","gsc_verification_file_name","gsc_verification_file_content","robots_txt","head_embed","footer_embed","contact_email","favicon_url","brand_tagline_ar","brand_tagline_en","seo_default_title_ar","seo_default_title_en","seo_default_description_ar","seo_default_description_en","ga4_id","gtm_id","global_schema_json"]),value:z.string().max(30000)});
 
 export const appRouter = router({
   system: systemRouter,
@@ -77,10 +78,63 @@ export const appRouter = router({
     pages:adminProcedure.query(()=>cmsList("page")),
     posts:adminProcedure.query(()=>cmsList("post")),
     settings:adminProcedure.query(()=>cmsGetSettings()),
-    savePage:adminProcedure.input(cmsPageInput).mutation(({input})=>cmsSavePage(input)),
-    savePost:adminProcedure.input(cmsPostInput).mutation(({input})=>cmsSavePost(input)),
-    deleteContent:adminProcedure.input(z.object({kind:z.enum(["page","post"]),id:z.number().int().positive()})).mutation(({input})=>cmsDelete(input.kind,input.id)),
-    saveSetting:adminProcedure.input(settingInput).mutation(({input})=>cmsSetSetting(input.key,input.value)),
+    publicSettings:publicProcedure.query(()=>proPublicSettings()),
+    savePage:adminProcedure.input(cmsPageInput).mutation(async({input})=>{const result=await cmsSavePage(input);await proAudit("page.save",input.locale+":"+input.slug).catch(()=>{});return result;}),
+    savePost:adminProcedure.input(cmsPostInput).mutation(async({input})=>{const result=await cmsSavePost(input);await proAudit("post.save",input.locale+":"+input.slug).catch(()=>{});return result;}),
+    deleteContent:adminProcedure.input(z.object({kind:z.enum(["page","post"]),id:z.number().int().positive()})).mutation(async({input})=>{const result=await cmsDelete(input.kind,input.id);await proAudit("content.delete",input.kind+":"+input.id).catch(()=>{});return result;}),
+    saveSetting:adminProcedure.input(settingInput).mutation(async({input})=>{
+      if(input.key==="gsc_verification_file_name" && input.value && !/^google[a-z0-9_-]{8,90}\.html$/i.test(input.value)) throw new Error("Invalid GSC verification filename");
+      if(input.key==="global_schema_json" && input.value){try{JSON.parse(input.value)}catch{throw new Error("Invalid JSON-LD")}}
+      const result=await cmsSetSetting(input.key,input.value);
+      await proAudit("settings.save",input.key).catch(()=>{});
+      return result;
+    }),
+  }),
+  pro: router({
+    summary:adminProcedure.query(()=>proDashboard()),
+    seoAudit:adminProcedure.query(()=>proSeoAudit()),
+    redirects:adminProcedure.query(()=>proRedirectList()),
+    saveRedirect:adminProcedure.input(z.object({
+      id:z.number().int().positive().optional(),
+      sourcePath:z.string().regex(/^\/[a-zA-Z0-9][a-zA-Z0-9/_-]{0,239}$/),
+      destination:z.string().regex(/^\/(?!\/|api\/|Admin(?:\/|$)|admin(?:\/|$)|media\/)[a-zA-Z0-9/_-]+(?:\?[a-zA-Z0-9=&_%.-]*)?$/),
+      type:z.enum(["301","302"]).default("301"),
+      active:z.boolean().default(true),
+    }).refine(x=>x.sourcePath!==x.destination,{message:"Redirect cannot point to itself"}))
+    .mutation(async({input})=>{
+      const existing=await proRedirectList();
+      if(existing.some(x=>x.sourcePath===input.destination.split("?")[0]&&x.destination.split("?")[0]===input.sourcePath))
+        throw new Error("Two-way redirect loop");
+      const result=await proSaveRedirect({...input,active:input.active?1:0});
+      await proAudit("redirect.save",input.sourcePath).catch(()=>{});
+      return result;
+    }),
+    deleteRedirect:adminProcedure.input(z.object({id:z.number().int().positive()})).mutation(async({input})=>{
+      const result=await proRemoveRedirect(input.id);
+      await proAudit("redirect.delete",String(input.id)).catch(()=>{});
+      return result;
+    }),
+    media:adminProcedure.query(()=>proMediaList()),
+    mediaAlt:adminProcedure.input(z.object({id:z.number().int().positive(),alt:z.string().max(300)})).mutation(async({input})=>{
+      const result=await proSetMediaAlt(input.id,input.alt);
+      await proAudit("media.alt",String(input.id)).catch(()=>{});
+      return result;
+    }),
+    audit:adminProcedure.query(()=>proAuditList()),
+    security:adminProcedure.query(()=>proSecurityList()),
+    leads:adminProcedure.query(()=>proLeadList()),
+    updateLead:adminProcedure.input(z.object({
+      id:z.number().int().positive(),
+      status:z.enum(["new","contacted","qualified","proposal","won","lost","closed"]).optional(),
+      notes:z.string().max(5000).optional(),
+      source:z.string().max(100).optional(),
+    }).refine(v=>v.status!==undefined||v.notes!==undefined||v.source!==undefined))
+    .mutation(async({input})=>{
+      const {id,...data}=input;
+      const result=await proUpdateLead(id,data);
+      await proAudit("lead.update",String(id)).catch(()=>{});
+      return result;
+    }),
   }),
   admin: router({
     dashboard: adminProcedure.query(async () => { const [articles, services, leads] = await Promise.all([listAllArticles(), listAllServices(), listAllLeads()]); return { articles, services, leads }; }),
