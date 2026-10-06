@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import type { ReactNode } from "react";
 import { Link } from "wouter";
 import { trpc } from "./lib/trpc";
 type Locale="ar"|"en";
@@ -47,4 +48,12 @@ export function CmsPost({slug,locale}:{slug:string;locale:Locale}){
  if(isLoading)return <div className="public-cms-wrap">Loading…</div>;
  if(isError||!data)return <div className="public-cms-wrap"><h1>{locale==="ar"?"المقال غير متاح":"Article not found"}</h1><Link href={locale==="ar"?"/":"/en"}>{locale==="ar"?"الرئيسية":"Home"}</Link></div>;
  return <article className="public-cms-wrap public-cms-post" lang={locale} dir={locale==="ar"?"rtl":"ltr"}><Seo item={data} locale={locale}/><header><span>{data.category}</span><h1>{data.title}</h1><p>{data.excerpt}</p></header>{data.featuredImage&&<img className="public-cms-cover" src={data.featuredImage} alt={data.imageAlt||data.title}/>}<div className="public-cms-body">{data.body.split(/\n\n+/).map((p:string,i:number)=><p key={i}>{p}</p>)}</div>{(data.embeds||[]).map((embed:any,i:number)=>{const url=safeEmbed(embed.url);return url?<Section key={i} section={{type:"embed",url,title:embed.title}}/>:null})}</article>;
+}
+
+/** Existing routes can be edited by publishing a CMS page with the matching slug.
+ * Until then, the original route stays visible and is never silently deleted. */
+export function CmsOverride({slug,locale,children}:{slug:string;locale:Locale;children:ReactNode}){
+ const result=trpc.cms.publishedPage.useQuery({slug,locale},{retry:false});
+ if(result.data)return <CmsPage slug={slug} locale={locale}/>;
+ return <>{children}</>;
 }
