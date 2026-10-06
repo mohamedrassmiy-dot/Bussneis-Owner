@@ -1,7 +1,5 @@
 name: Business Owner V2 Validation
 on:
-  push:
-    branches: [business-owner-v2]
   pull_request:
     branches: [main]
 jobs:
