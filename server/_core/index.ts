@@ -55,6 +55,15 @@ async function startServer() {
       res.type("text/plain").send(custom||fallback);
     }catch{res.type("text/plain").send(fallback)}
   });
+  app.get("/sitemap.xml",async(req,res)=>{
+    try{
+      const [pages,posts]=await Promise.all([cmsList("page",true),cmsList("post",true)]);
+      const base="https://bussneis-owner-production.up.railway.app";
+      const urls=[base+"/",base+"/en",...pages.filter(p=>p.robots==="index,follow").map(p=>base+(p.locale==="en"?"/en":"")+"/p/"+encodeURIComponent(p.slug)),...posts.filter(p=>p.robots==="index,follow").map(p=>base+(p.locale==="en"?"/en":"")+"/blog/"+encodeURIComponent(p.slug))];
+      const escapeXml=(s:string)=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      res.type("application/xml").send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(url=>"<url><loc>"+escapeXml(url)+"</loc></url>").join("")+"</urlset>");
+    }catch{res.status(503).send("Sitemap unavailable");}
+  });
   // Serve Google Search Console HTML verification without writing arbitrary files.
   app.use(async (req,res,next)=>{
     if(!/^\/google[a-z0-9_-]{8,90}\.html$/i.test(req.path))return next();
