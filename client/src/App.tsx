@@ -30,7 +30,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { trpc } from "./lib/trpc";
 
-const logo = "/brand-logo.png";
+const logo = "/business-owner-transparent.png";
+const fallbackLogo = "/brand-logo.png";
 
 const services = [
   {
@@ -133,7 +134,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <header className="site-header">
         <button className="mobile-menu" onClick={() => setOpen(!open)} aria-label="فتح القائمة">{open ? <X /> : <Menu />}</button>
         <button className="brand" onClick={() => go("/")} aria-label="العودة إلى الرئيسية">
-          <span className="brand-mark"><img src={logo} alt="Business Owner — الشعار الرسمي" /></span>
+          <span className="brand-mark"><img src={logo} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = fallbackLogo; }} alt="Business Owner — الشعار الرسمي" /></span>
         </button>
         <nav className={open ? "main-nav open" : "main-nav"}>
           {links.map(([path, label]) => <button key={path} className={location === path ? "active" : ""} onClick={() => go(path)}>{label}</button>)}
@@ -143,7 +144,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <main>{children}</main>
       <footer className="site-footer">
         <div className="footer-callout"><span className="section-kicker">هل لديك فكرة تستحق الحركة؟</span><h2>لنحوّلها إلى عرض<br /><em>يفهمه السوق.</em></h2><button className="circle-arrow" onClick={() => go("/contact")}><ArrowUpLeft /></button></div>
-        <div className="footer-bottom"><div className="footer-brand"><img src={logo} alt="Business Owner — الشعار الرسمي" /></div><p>معرفة عملية. قرارات أوضح. نمو يتحرك.</p><div className="footer-links"><button onClick={() => go("/articles")}>المقالات</button><button onClick={() => go("/services")}>الخدمات</button><a href="https://www.linkedin.com" target="_blank" rel="noreferrer"><Linkedin size={16} /> LinkedIn</a></div></div>
+        <div className="footer-bottom"><div className="footer-brand"><img src={logo} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = fallbackLogo; }} alt="Business Owner — الشعار الرسمي" /></div><p>معرفة عملية. قرارات أوضح. نمو يتحرك.</p><div className="footer-links"><button onClick={() => go("/articles")}>المقالات</button><button onClick={() => go("/services")}>الخدمات</button><a href="https://www.linkedin.com" target="_blank" rel="noreferrer"><Linkedin size={16} /> LinkedIn</a></div></div>
       </footer>
     </div>
   );
@@ -154,7 +155,7 @@ function Home() {
   return <>
     <section className="hero section-wrap">
       <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-dot" /> استشارات ونمو للأعمال الجادة</div><h1>الفكرة الجيدة<br /><span>تحتاج مالكاً</span><br />يعرف كيف يحرّكها.</h1><p className="hero-lead">نساعد أصحاب الأعمال على تحويل الخبرة إلى عرض واضح، ونظام نمو قابل للإدارة، ومحتوى يبني الثقة قبل أن يطلب البيع.</p><div className="hero-actions"><button className="primary-btn" onClick={() => setLocation("/contact")}>احكِ لنا عن مشروعك <ArrowUpLeft size={18} /></button><button className="text-btn" onClick={() => setLocation("/articles")}>استكشف المعرفة <ArrowLeft size={18} /></button></div></div>
-      <div className="hero-visual"><div className="hero-stamp"><img src={logo} alt="Business Owner — الهوية الرسمية" /></div><div className="hero-note"><span>BUSINESS OWNER</span><p>من الوضوح تبدأ الحركة.</p></div></div>
+      <div className="hero-visual"><div className="hero-stamp"><img src={logo} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = fallbackLogo; }} alt="Business Owner — الهوية الرسمية" /></div><div className="hero-note"><span>BUSINESS OWNER</span><p>من الوضوح تبدأ الحركة.</p></div></div>
     </section>
     <section className="signal-strip"><div><strong>01</strong><span>وضوح العرض</span></div><div><strong>02</strong><span>ثقة السوق</span></div><div><strong>03</strong><span>نظام النمو</span></div><div className="signal-last"><span>Business Owner</span><ArrowUpLeft size={18} /></div></section>
     <section className="intro section-wrap"><div className="intro-side"><span className="section-kicker">لماذا نحن؟</span><span className="vertical-word">BUSINESS OWNER</span></div><div className="intro-copy"><h2>لا نبيع وصفات جاهزة.<br /><span>نبني قراراً يناسبك.</span></h2><p>كل عمل له سياقه، وطاقته، وتوقيته. دورنا أن نرى الصورة الكبيرة، نرتب الفوضى، ونضع خطوات تستطيع أنت وفريقك مواصلتها بعد انتهاء المشروع.</p><button className="outline-btn" onClick={() => setLocation("/about")}>تعرّف على الطريقة <ChevronLeft size={18} /></button></div></section>
