@@ -1,5 +1,6 @@
 import { importExistingContent } from "./cmsImport";
 import { z } from "zod";
+import { assertLeadRateLimit } from "./_core/leadRateLimit";
 import { clearAdminSession } from "./_core/adminAuth";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
@@ -61,7 +62,7 @@ export const appRouter = router({
   articles: router({ list: publicProcedure.query(() => listPublishedArticles()), bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(({ input }) => getArticleBySlug(input.slug)) }),
   services: router({ list: publicProcedure.query(() => listPublishedServices()) }),
   leads: router({
-    create: publicProcedure.input(z.object({ name: z.string().min(2), email: z.string().email(), company: z.string().optional(), service: z.string().optional(), message: z.string().min(8) })).mutation(({ input }) => createLead({ ...input, name: input.name.trim(), email: input.email.trim().toLowerCase(), company: input.company?.trim() || null, service: input.service?.trim() || null, message: input.message.trim(), status: "new" })),
+    create: publicProcedure.input(z.object({ name: z.string().trim().min(2).max(120), email: z.string().trim().email().max(254), company: z.string().trim().max(150).optional(), service: z.string().trim().max(150).optional(), message: z.string().trim().min(8).max(3000) })).mutation(({ ctx, input }) => { assertLeadRateLimit(ctx.req.ip ?? "unknown"); return createLead({ ...input, name: input.name.trim(), email: input.email.trim().toLowerCase(), company: input.company?.trim() || null, service: input.service?.trim() || null, message: input.message.trim(), status: "new" }); }),
   }),
   cms: router({
     publishedPages:publicProcedure.input(z.object({locale})).query(({input})=>cmsList("page",true,input.locale)),
