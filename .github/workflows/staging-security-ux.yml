@@ -25,6 +25,8 @@ jobs:
         run: pnpm test
       - name: Typecheck latest source
         run: pnpm check
+      - name: Audit production dependencies for high and critical advisories
+        run: pnpm audit --prod --audit-level high
       - name: Install isolated Playwright and axe-core
         run: |
           mkdir -p /tmp/business-owner-qa
