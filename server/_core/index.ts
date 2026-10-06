@@ -1,4 +1,5 @@
 import { importExistingContent } from "../cmsImport";
+import { restoreOriginalArticleDrafts } from "../repairLegacyDrafts";
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
@@ -85,7 +86,8 @@ async function startServer() {
   if (process.env.DATABASE_URL) {
     try {
       const result = await importExistingContent();
-      console.log("[CMS] Existing-content draft import:", result);
+      const repair = await restoreOriginalArticleDrafts();
+      console.log("[CMS] Existing-content draft import:", { ...result, ...repair });
     } catch (error) {
       console.error("[CMS] Draft import failed; public site remains available:", error);
     }
