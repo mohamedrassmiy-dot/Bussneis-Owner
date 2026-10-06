@@ -7,6 +7,7 @@ import { registerAdminLogin } from "./adminAuth";
 import { publicPlatformScript } from "./publicConfig";
 import { appRouter } from "../routers";
 import { cmsGetSettings, cmsList } from "../db";
+import { registerCmsMedia } from "./cmsMedia";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 
@@ -77,6 +78,7 @@ async function startServer() {
     }catch{next()}
   });
   registerAdminLogin(app);
+  registerCmsMedia(app);
   if (process.env.MANUS_OAUTH_API_URL) registerOAuthRoutes(app);
   // tRPC API
   app.use(
