@@ -21,3 +21,10 @@
 .admin-toolbar button{color:var(--blue);font-weight:600}
 .cms-modal{max-height:min(90vh,900px);overflow-y:auto}
 @media(max-width:700px){.cms-lead{flex-direction:column;gap:1rem}.cms-lead label{width:100%}.admin-access{padding:1.5rem;margin:2rem 0}}
+
+
+.admin-access{display:grid;gap:16px}
+.admin-access label{display:grid;gap:7px;font-weight:600}
+.admin-access input{width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:8px;background:white;outline:none}
+.admin-access input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,99,255,.10)}
+.admin-access .primary-btn{justify-self:start}
