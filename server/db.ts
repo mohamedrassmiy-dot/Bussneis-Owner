@@ -56,3 +56,10 @@ export async function listAllServices() { const db = await getDb(); return db ? 
 export async function listAllLeads() { const db = await getDb(); return db ? db.select().from(leads).orderBy(desc(leads.createdAt)) : []; }
 export async function insertArticle(input: InsertArticle) { const db = await getDb(); if (!db) return null; const result = await db.insert(articles).values(input); return result; }
 export async function insertService(input: InsertService) { const db = await getDb(); if (!db) return null; const result = await db.insert(services).values(input); return result; }
+
+export async function updateLeadStatus(id: number, status: "new" | "contacted" | "closed") {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(leads).set({ status }).where(eq(leads.id, id));
+  return { success: true };
+}
