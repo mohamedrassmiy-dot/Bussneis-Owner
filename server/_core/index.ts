@@ -1,4 +1,5 @@
 import { importExistingContent } from "../cmsImport";
+import { originalArticles, originalServices } from "../cmsLegacyData";
 import { restoreOriginalArticleDrafts } from "../repairLegacyDrafts";
 import "dotenv/config";
 import express from "express";
@@ -47,7 +48,27 @@ async function startServer() {
     try{
       const [pages,posts]=await Promise.all([cmsList("page",true),cmsList("post",true)]);
       const base="https://bussneis-owner-production.up.railway.app";
-      const urls=[base+"/",base+"/en",...pages.filter(p=>p.robots==="index,follow").map(p=>base+(p.locale==="en"?"/en":"")+"/p/"+encodeURIComponent(p.slug)),...posts.filter(p=>p.robots==="index,follow").map(p=>base+(p.locale==="en"?"/en":"")+"/blog/"+encodeURIComponent(p.slug))];
+      const originalPaths=[
+        "/","/en","/services","/en/services","/articles","/en/articles",
+        "/about","/en/about","/contact","/en/contact",
+        ...originalServices.map(x=>(x.locale==="en"?"/en":"")+"/services/"+encodeURIComponent(x.slug)),
+        ...originalArticles.map(x=>(x.locale==="en"?"/en":"")+"/articles/"+encodeURIComponent(x.slug))
+      ];
+      const pagePath=(p:typeof pages[number])=>{
+        const prefix=p.locale==="en"?"/en":"";
+        if(p.slug==="home")return prefix||"/";
+        if(["services","articles","about","contact"].includes(p.slug))return prefix+"/"+p.slug;
+        if(p.slug.startsWith("service-"))return prefix+"/services/"+p.slug.slice(8);
+        return prefix+"/p/"+encodeURIComponent(p.slug);
+      };
+      const postPath=(p:typeof posts[number])=>
+        (p.locale==="en"?"/en":"")+(originalArticles.some(a=>a.locale===p.locale&&a.slug===p.slug)?"/articles/":"/blog/")+encodeURIComponent(p.slug);
+      const block=new Set([
+        ...pages.filter(p=>p.robots?.startsWith("noindex")).map(pagePath),
+        ...posts.filter(p=>p.robots?.startsWith("noindex")).map(postPath)
+      ]);
+      const paths=new Set([...originalPaths,...pages.filter(p=>p.robots!=="noindex,nofollow"&&p.robots!=="noindex,follow").map(pagePath),...posts.filter(p=>p.robots!=="noindex,nofollow"&&p.robots!=="noindex,follow").map(postPath)]);
+      const urls=[...paths].filter(path=>!block.has(path)).map(path=>base+path);
       const escapeXml=(s:string)=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
       res.type("application/xml").send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(url=>"<url><loc>"+escapeXml(url)+"</loc></url>").join("")+"</urlset>");
     }catch{res.status(503).send("Sitemap unavailable");}
