@@ -1,5 +1,5 @@
 import { createHmac, scryptSync, timingSafeEqual } from "node:crypto";
-import { parse as parseCookies, serialize as serializeCookie } from "cookie";
+import { parse as parseCookies } from "cookie";
 import type { Request, Response } from "express";
 
 const COOKIE = "bo_admin_session";
@@ -56,10 +56,10 @@ export function isAdminSession(req: Request): boolean {
 }
 
 function setSessionCookie(res: Response, token: string, maxAge: number) {
-  res.append("Set-Cookie", serializeCookie(COOKIE, token, {
+  res.cookie(COOKIE, token, {
     httpOnly: true, secure: process.env.NODE_ENV === "production",
-    sameSite: "strict", path: "/", maxAge,
-  }));
+    sameSite: "strict", path: "/", maxAge: maxAge * 1000,
+  });
 }
 
 export function registerAdminLogin(app: import("express").Express) {
