@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { articles, InsertArticle, InsertLead, InsertService, leads, services, InsertUser, users } from "../drizzle/schema";
+import { articles, InsertArticle, InsertLead, InsertService, leads, services, InsertUser, users, cmsPages, cmsPosts, cmsSettings } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -77,4 +77,45 @@ export async function updateService(id: number, fields: Partial<InsertService>) 
   if (!db) throw new Error("Database is not available");
   await db.update(services).set(fields).where(eq(services.id, id));
   return { success: true };
+}
+
+/** CMS operations always fail explicitly if the persistent database is unavailable. */
+async function requiredDb() { const db = await getDb(); if (!db) throw new Error("CMS database is not configured"); return db; }
+export async function cmsList(kind:"page"|"post", publishedOnly=false, locale?:"ar"|"en") {
+  const db=await requiredDb(); const table=kind==="page"?cmsPages:cmsPosts;
+  const rows=await db.select().from(table).orderBy(desc(table.updatedAt));
+  return rows.filter(x=>(!publishedOnly||x.status==="published")&&(!locale||x.locale===locale));
+}
+export async function cmsGet(kind:"page"|"post", id:number) {
+  const db=await requiredDb();const table=kind==="page"?cmsPages:cmsPosts;
+  return (await db.select().from(table).where(eq(table.id,id)).limit(1))[0]??null;
+}
+export async function cmsFindPublished(kind:"page"|"post",slug:string,locale:"ar"|"en") {
+  const rows=await cmsList(kind,true,locale);
+  return rows.find(x=>x.slug===slug)??null;
+}
+export async function cmsSavePage(input:typeof cmsPages.$inferInsert) {
+  const db=await requiredDb();
+  if(input.id){await db.update(cmsPages).set(input).where(eq(cmsPages.id,input.id));return {id:input.id};}
+  const [r]=await db.insert(cmsPages).values(input).$returningId();return r;
+}
+export async function cmsSavePost(input:typeof cmsPosts.$inferInsert) {
+  const db=await requiredDb();
+  if(input.id){await db.update(cmsPosts).set(input).where(eq(cmsPosts.id,input.id));return {id:input.id};}
+  const [r]=await db.insert(cmsPosts).values(input).$returningId();return r;
+}
+export async function cmsDelete(kind:"page"|"post",id:number) {
+  const db=await requiredDb();
+  if(kind==="page")await db.delete(cmsPages).where(eq(cmsPages.id,id));
+  else await db.delete(cmsPosts).where(eq(cmsPosts.id,id));
+  return {success:true};
+}
+export async function cmsGetSettings() {
+  const db=await requiredDb();
+  return db.select().from(cmsSettings);
+}
+export async function cmsSetSetting(key:string,value:string) {
+  const db=await requiredDb();
+  await db.insert(cmsSettings).values({key,value}).onDuplicateKeyUpdate({set:{value}});
+  return {success:true};
 }
