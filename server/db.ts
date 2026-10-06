@@ -98,8 +98,13 @@ export async function cmsGet(kind:"page"|"post", id:number) {
 export function cmsFindPublished(kind:"page",slug:string,locale:"ar"|"en"):Promise<typeof cmsPages.$inferSelect|null>;
 export function cmsFindPublished(kind:"post",slug:string,locale:"ar"|"en"):Promise<typeof cmsPosts.$inferSelect|null>;
 export async function cmsFindPublished(kind:"page"|"post",slug:string,locale:"ar"|"en") {
-  const rows=await cmsList(kind,true,locale);
-  return rows.find(x=>x.slug===slug)??null;
+  const db=await requiredDb();
+  if(kind==="page") {
+    const rows=await db.select().from(cmsPages).where(eq(cmsPages.slug,slug));
+    return rows.find(x=>x.locale===locale&&x.status==="published")??null;
+  }
+  const rows=await db.select().from(cmsPosts).where(eq(cmsPosts.slug,slug));
+  return rows.find(x=>x.locale===locale&&x.status==="published")??null;
 }
 export async function cmsSavePage(input:typeof cmsPages.$inferInsert) {
   const db=await requiredDb();
