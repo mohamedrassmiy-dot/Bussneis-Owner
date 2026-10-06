@@ -24,7 +24,7 @@ async function startServer() {
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-    res.setHeader("Content-Security-Policy", "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'");
+    res.setHeader("Content-Security-Policy", "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self'; connect-src 'self'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.google.com https://maps.google.com https://www.figma.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'");
     next();
   });
   // Keep public request bodies bounded. Media uploads should use object storage/presigned URLs.
@@ -66,6 +66,17 @@ async function startServer() {
   registerAdminLogin(app);
   registerCmsMedia(app);
   if (process.env.MANUS_OAUTH_API_URL) registerOAuthRoutes(app);
+  // Refuse cross-site state-changing API calls even if a session cookie is present.
+  app.use("/api/trpc", (req, res, next) => {
+    if(req.method !== "POST") return next();
+    const origin = req.get("origin");
+    if(!origin) return next();
+    try {
+      const supplied = new URL(origin);
+      if(supplied.protocol === "https:" && supplied.host === req.get("host")) return next();
+    }catch{}
+    return res.status(403).json({ error: "Cross-origin writes are not allowed" });
+  });
   // tRPC API
   app.use(
     "/api/trpc",
