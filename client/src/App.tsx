@@ -120,11 +120,13 @@ const articleBodies: Record<string, string[]> = {
 function Shell({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const [open, setOpen] = useState(false);
+  const cmsNav = trpc.cms.publishedPages.useQuery({ locale: "ar" }, { retry: false });
   const links = [
     ["/", "الرئيسية"],
     ["/services", "الخدمات"],
     ["/articles", "المقالات"],
     ["/about", "عنّا"],
+    ...((cmsNav.data || []).filter(p => !["home","services","articles","about","contact"].includes(p.slug)).slice(0,4).map(p => ["/p/"+p.slug,p.title])),
   ];
   const go = (path: string) => {
     setOpen(false);
@@ -144,6 +146,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <nav className={open ? "main-nav open" : "main-nav"}>
           {links.map(([path, label]) => <button key={path} className={location === path ? "active" : ""} onClick={() => go(path)}>{label}</button>)}
         </nav>
+        <a className="cms-language-link" href="/en" lang="en">EN</a>
         <button className="header-cta" onClick={() => { window.location.href = "mailto:bussneis.owner@gmail.com?subject=Business%20Owner%20-%20استفسار"; }}>راسلنا <ArrowUpLeft size={16} /></button>
       </header>
       <main>{children}</main>
