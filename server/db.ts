@@ -63,3 +63,18 @@ export async function updateLeadStatus(id: number, status: "new" | "contacted" |
   await db.update(leads).set({ status }).where(eq(leads.id, id));
   return { success: true };
 }
+
+export async function updateArticle(id: number, fields: Partial<InsertArticle>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const patch = { ...fields, ...(fields.status === "published" ? { publishedAt: new Date() } : {}) };
+  await db.update(articles).set(patch).where(eq(articles.id, id));
+  return { success: true };
+}
+
+export async function updateService(id: number, fields: Partial<InsertService>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(services).set(fields).where(eq(services.id, id));
+  return { success: true };
+}
