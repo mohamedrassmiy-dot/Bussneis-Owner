@@ -58,6 +58,7 @@ try {
   const browser=await chromium.launch({ headless:true, args:["--no-sandbox"] });
   try {
     const matrix = [
+      {id:"ar-home-small-phone",url:"/",width:320,height:700},
       {id:"ar-home-mobile",url:"/",width:390,height:844},
       {id:"ar-home-tablet",url:"/",width:768,height:1024},
       {id:"ar-home-desktop",url:"/",width:1440,height:900},
@@ -105,6 +106,31 @@ try {
             if(["serious","critical"].includes(a.impact))add("blocker","A11Y_"+target.id+"_"+a.rule,a.impact+" "+a.description+" ("+a.count+" nodes). Targets: "+JSON.stringify(a.examples));
             else add("warning","A11Y_"+target.id+"_"+a.rule,a.impact+" "+a.description+" ("+a.count+" nodes)");
           }
+        }
+        // Non-destructive functional interaction checks after recording screenshots.
+        if(target.id==="ar-home-mobile"){
+          await page.locator(".mobile-menu").click();
+          check(await page.locator(".main-nav.open").isVisible(),"MOBILE_MENU_AR","Arabic mobile nav failed to open");
+          const services=page.locator(".main-nav.open button").filter({hasText:"الخدمات"}).first();
+          await services.click();
+          check(new URL(page.url()).pathname==="/services","MOBILE_NAV_AR","Arabic mobile services link failed");
+        }
+        if(target.id==="en-home-mobile"){
+          await page.locator(".en-menu").click();
+          check(await page.locator(".en-nav.is-open").isVisible(),"MOBILE_MENU_EN","English mobile nav failed to open");
+          await page.locator(".en-nav.is-open").getByText("Services",{exact:true}).click();
+          check(new URL(page.url()).pathname==="/en/services","MOBILE_NAV_EN","English mobile services link failed");
+        }
+        if(target.id.includes("contact")){
+          const form=page.locator("form").first();
+          check(await form.locator("input:invalid,textarea:invalid").count()>0,"CONTACT_VALIDATION_"+target.id,"Empty contact form must fail native validation");
+          await form.locator('button[type="submit"]').click();
+          check(new URL(page.url()).pathname===target.url,"CONTACT_NO_SUBMIT_"+target.id,"Blank form must stay on the contact page");
+        }
+        if(target.id==="admin-mobile"){
+          const login=page.locator("form").first();
+          await login.locator('button[type="submit"]').click();
+          check(await login.locator("input:invalid").count()>0,"ADMIN_LOGIN_VALIDATION","Empty admin login should not submit");
         }
       }catch(e){add("blocker","BROWSER_"+target.id,String(e).slice(0,600))}
       finally{await context.close();}
