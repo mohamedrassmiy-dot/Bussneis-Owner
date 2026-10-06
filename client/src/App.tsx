@@ -270,7 +270,7 @@ function AdminPage() {
   return <section className="admin-wrap section-wrap">
     <div className="admin-head"><div><span className="section-kicker">BUSINESS OWNER CMS</span><h1>إدارة <em>المعرفة والنمو.</em></h1></div><button className="primary-btn" onClick={() => { setEditing(null); setPublish(false); setDraft({title:"",slug:"",summary:"",body:"",category:"إدارة الأعمال"}); setShowForm(true); }}><Plus size={17} /> إضافة محتوى</button></div>
     <div className="admin-shell">
-      <aside className="admin-sidebar"><div className="admin-user"><div className="avatar">BO</div><div><strong>{me.data?.name || "مدير النظام"}</strong><small>Administrator</small></div></div>
+      <aside className="admin-sidebar"><div className="admin-user"><div className="avatar">BO</div><div><strong>{me.data?.name || "مدير النظام"}</strong><small>Administrator</small></div></div><button type="button" onClick={async () => { await fetch("/api/admin/logout", { method: "POST", credentials: "same-origin" }); window.location.reload(); }}>تسجيل الخروج</button>
         {([["overview", <LayoutDashboard size={16} />, "نظرة عامة"], ["articles", <FileText size={16} />, "المقالات"], ["services", <BriefcaseBusiness size={16} />, "الخدمات"], ["leads", <Inbox size={16} />, "العملاء المحتملون"]] as const).map(([key, icon, label]) => <button key={key} className={tab === key ? "active" : ""} onClick={() => setTab(key)}>{icon}{label}</button>)}
       </aside>
       <div className="admin-main">
