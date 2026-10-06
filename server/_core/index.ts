@@ -37,8 +37,8 @@ async function startServer() {
     try{
       const settings=await cmsGetSettings();
       const custom=settings.find(x=>x.key==="robots_txt")?.value;
-      res.type("text/plain").send(custom||"User-agent: *\\nAllow: /\\nDisallow: /Admin\\nDisallow: /admin\\nDisallow: /api/\\nSitemap: https://bussneis-owner-production.up.railway.app/sitemap.xml\\n");
-    }catch{res.type("text/plain").send("User-agent: *\\nDisallow: /Admin\\nDisallow: /api/\\n");}
+      res.type("text/plain").send(custom||"User-agent: *\nAllow: /\nDisallow: /Admin\nDisallow: /admin\nDisallow: /api/\nSitemap: https://bussneis-owner-production.up.railway.app/sitemap.xml\n");
+    }catch{res.type("text/plain").send("User-agent: *\nDisallow: /Admin\nDisallow: /api/\n");}
   });
   app.get("/sitemap.xml",async(req,res)=>{
     try{
