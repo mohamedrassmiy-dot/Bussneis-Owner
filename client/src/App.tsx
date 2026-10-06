@@ -1,3 +1,4 @@
+import EnglishSite from "./EnglishSite";
 import { CmsPage, CmsPost } from "./CmsPublic";
 import FullCMS from "./FullCMS";
 import { useMemo, useState } from "react";
@@ -130,6 +131,8 @@ function Shell({ children }: { children: React.ReactNode }) {
     setLocation(path);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  if(location.startsWith("/en"))return <>{children}</>;
+  if(location==="/Admin"||location==="/admin")return <div className="site-shell admin-only" dir="rtl"><main>{children}</main></div>;
   return (
     <div className="site-shell" dir="rtl">
       <div className="topline"><span>Business Owner / معرفة تتحول إلى حركة</span><span>متاح لمشاريع مختارة في 2026</span></div>
@@ -228,7 +231,7 @@ function AdminPage() {
   if(auth.data?.role!=="admin")return <AdminLogin/>;
   return <FullCMS/>;
 }
-function Router() { return <Switch><Route path="/" component={Home} /><Route path="/services" component={ServicesPage} /><Route path="/services/:slug">{(params) => <ServiceDetail slug={params.slug} />}</Route><Route path="/articles" component={ArticlesPage} /><Route path="/articles/:slug">{(params) => <ArticleDetail slug={params.slug} />}</Route><Route path="/about" component={AboutPage} /><Route path="/contact" component={ContactPage} /><Route path="/p/:slug">{(params)=><CmsPage slug={params.slug} locale="ar"/>}</Route><Route path="/en/p/:slug">{(params)=><CmsPage slug={params.slug} locale="en"/>}</Route><Route path="/blog/:slug">{(params)=><CmsPost slug={params.slug} locale="ar"/>}</Route><Route path="/en/blog/:slug">{(params)=><CmsPost slug={params.slug} locale="en"/>}</Route><Route path="/Admin" component={AdminPage} /><Route path="/admin" component={AdminPage} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>; }
+function Router() { return <Switch><Route path="/" component={Home} /><Route path="/services" component={ServicesPage} /><Route path="/services/:slug">{(params) => <ServiceDetail slug={params.slug} />}</Route><Route path="/articles" component={ArticlesPage} /><Route path="/articles/:slug">{(params) => <ArticleDetail slug={params.slug} />}</Route><Route path="/about" component={AboutPage} /><Route path="/contact" component={ContactPage} /><Route path="/p/:slug">{(params)=><CmsPage slug={params.slug} locale="ar"/>}</Route><Route path="/en/p/:slug">{(params)=><CmsPage slug={params.slug} locale="en"/>}</Route><Route path="/blog/:slug">{(params)=><CmsPost slug={params.slug} locale="ar"/>}</Route><Route path="/en/blog/:slug">{(params)=><CmsPost slug={params.slug} locale="en"/>}</Route><Route path="/Admin" component={AdminPage} /><Route path="/admin" component={AdminPage} /><Route path="/en" component={EnglishSite} /><Route path="/en/*" component={EnglishSite} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>; }
 
 function App() { return <ErrorBoundary><ThemeProvider defaultTheme="light"><TooltipProvider><Toaster /><Shell><Router /></Shell></TooltipProvider></ThemeProvider></ErrorBoundary>; }
 export default App;
