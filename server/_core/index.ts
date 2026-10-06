@@ -5,7 +5,7 @@ import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
-import { registerAdminLogin } from "./adminAuth";
+import { registerAdminLogin, refreshAdminSecurity } from "./adminAuth";
 import { publicPlatformScript } from "./publicConfig";
 import { appRouter } from "../routers";
 import { cmsGetSettings, cmsList } from "../db";
@@ -118,6 +118,7 @@ async function startServer() {
       console.error("[CMS] Draft import failed; public site remains available:", error);
     }
   }
+  try { await refreshAdminSecurity(true); } catch (error) { console.error("[Admin] Security configuration load failed",error); }
   const port = Number(process.env.PORT || "3000");
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid PORT");
   server.on("error", error => { console.error("Server failed:", error.message); process.exit(1); });
