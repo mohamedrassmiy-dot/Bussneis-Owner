@@ -1,0 +1,32 @@
+name: Production post-deployment smoke (read-only)
+on:
+  push:
+    branches: [business-owner-v2]
+    paths:
+      - ".github/workflows/production-readonly-smoke.yml"
+      - "scripts/qa-production-readonly.mjs"
+permissions:
+  contents: read
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install isolated headless browser
+        run: |
+          mkdir -p /tmp/business-owner-qa
+          npm install --prefix /tmp/business-owner-qa --no-save --no-package-lock playwright@1.56.1
+          /tmp/business-owner-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Validate live Production pages, security and responsive layouts
+        run: node scripts/qa-production-readonly.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-post-deploy-smoke
+          path: production-smoke-results/
+          if-no-files-found: warn
+          retention-days: 14
