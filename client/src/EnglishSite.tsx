@@ -18,7 +18,7 @@ const mail = (subject:string) => "mailto:"+email+"?subject="+encodeURIComponent(
 export default function EnglishSite(){
  const [path] = useLocation();
  const [menuOpen,setMenuOpen]=useState(false);
- useEffect(()=>{document.documentElement.lang="en";document.documentElement.dir="ltr";document.title="Business Owner | Business Strategy, Brand & Growth";return ()=>{document.documentElement.lang="ar";document.documentElement.dir="rtl";};},[]);
+ useEffect(()=>{document.documentElement.lang="en";document.documentElement.dir="ltr";document.title="Business Owner | Business Strategy, Brand & Growth"; const canonical=document.querySelector<HTMLLinkElement>('link[rel="canonical"]');const previous=canonical?.href;if(canonical) canonical.href=window.location.origin+window.location.pathname;let meta=document.querySelector<HTMLMetaElement>('meta[name="description"]');const previousDescription=meta?.content;if(meta) meta.content="Business Owner provides business strategy, brand positioning, growth systems and practical insights for entrepreneurs and business owners.";return ()=>{document.documentElement.lang="ar";document.documentElement.dir="rtl";if(canonical&&previous)canonical.href=previous;if(meta&&previousDescription)meta.content=previousDescription;};},[]);
  const p=path.replace(/^\/en\/?/,"").replace(/\/$/,"");
  const service=p.startsWith("services/")?services.find(x=>x.slug===p.split("/")[1]):null;
  const article=p.startsWith("articles/")?articles.find(x=>x.slug===p.split("/")[1]):null;
