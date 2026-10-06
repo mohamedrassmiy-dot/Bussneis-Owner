@@ -19,6 +19,10 @@ const embedUrl = safeUrl.refine(value => {
   const h=new URL(value).hostname.toLowerCase();
   return ["www.youtube.com","youtube.com","www.youtube-nocookie.com","player.vimeo.com","www.google.com","maps.google.com","www.figma.com"].includes(h);
 },"Embed provider not allowed");
+const safeCallToAction = z.string().max(2048).refine(value => {
+  if(value.startsWith("/") && !value.startsWith("//") && !value.includes("\\\\")) return true;
+  try { return new URL(value).protocol === "https:"; } catch { return false; }
+}, "Only HTTPS and site-relative links are allowed");
 const section = z.object({
   id:z.string().min(1).max(80),
   type:z.enum(["hero","text","image","embed","cta","faq"]),
@@ -28,7 +32,7 @@ const section = z.object({
   alt:z.string().max(300).optional(),
   url:embedUrl.optional(),
   buttonLabel:z.string().max(150).optional(),
-  buttonUrl:z.string().max(2048).optional(),
+  buttonUrl:safeCallToAction.optional(),
 });
 const seoFields={
   seoTitle:z.string().max(300).nullable().optional(),
