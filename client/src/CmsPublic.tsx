@@ -54,7 +54,7 @@ export function CmsPost({slug,locale}:{slug:string;locale:Locale}){
  * Until then, the original route stays visible and is never silently deleted. */
 export function CmsOverride({slug,locale,children}:{slug:string;locale:Locale;children:ReactNode}){
  const result=trpc.cms.publishedPage.useQuery({slug,locale},{retry:false});
- if(result.data)return <CmsPage slug={slug} locale={locale}/>;
+ if(result.data)return slug==="contact"?<><CmsPage slug={slug} locale={locale}/>{children}</>:<CmsPage slug={slug} locale={locale}/>;
  return <>{children}</>;
 }
 
