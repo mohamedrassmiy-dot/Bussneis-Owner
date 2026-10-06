@@ -1,3 +1,4 @@
+import { importExistingContent } from "../cmsImport";
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
@@ -79,6 +80,16 @@ async function startServer() {
     serveStatic(app);
   }
 
+  // Seed editable draft records for legacy routes without changing published pages.
+  // Idempotent: existing CMS records are never overwritten.
+  if (process.env.DATABASE_URL) {
+    try {
+      const result = await importExistingContent();
+      console.log("[CMS] Existing-content draft import:", result);
+    } catch (error) {
+      console.error("[CMS] Draft import failed; public site remains available:", error);
+    }
+  }
   const port = Number(process.env.PORT || "3000");
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error("Invalid PORT");
   server.on("error", error => { console.error("Server failed:", error.message); process.exit(1); });
