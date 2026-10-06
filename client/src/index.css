@@ -9,3 +9,44 @@
 /* Logo integrity: never zoom, distort, or crop the supplied brand artwork. */
 .brand-mark{flex-shrink:0;border-radius:9px}
 .brand-mark img,.footer-brand img,.hero-stamp img{display:block;max-width:100%;max-height:100%;object-fit:contain;object-position:center;transform:none}
+
+
+/* Frontend visual refinement — official full Business Owner identity */
+.site-header{min-height:88px;height:auto;gap:28px}
+.brand{flex:0 0 auto;min-width:0;max-width:255px}
+.brand-mark{display:flex;align-items:center;justify-content:center;width:205px;height:78px;padding:3px 0;background:transparent;box-shadow:none;border-radius:0;overflow:visible}
+.brand-mark img{width:100%;height:100%;object-fit:contain;object-position:center;transform:none}
+.footer-brand{display:flex;align-items:center}
+.footer-brand img{width:min(240px,65vw);height:auto;max-height:105px;object-fit:contain}
+.hero-visual{display:flex;align-items:center;justify-content:center;min-height:430px;padding:32px;background:linear-gradient(135deg,#eef6ff 0%,#ffffff 52%,#fff6eb 100%);border:1px solid #e3eaf4;border-radius:20px;overflow:hidden;box-shadow:0 20px 65px rgba(23,55,111,.07)}
+.hero-visual:before,.hero-visual:after{display:none}
+.hero-stamp{position:static;inset:auto;width:100%;height:auto;max-width:440px;background:transparent;padding:0;box-shadow:none;z-index:1;transform:none;display:flex;align-items:center;justify-content:center}
+.hero-stamp img{display:block;width:100%;height:auto;max-height:315px;object-fit:contain;transform:none;filter:drop-shadow(0 16px 22px rgba(17,64,135,.10))}
+.hero-note{position:absolute;right:24px;bottom:20px;top:auto;text-align:right;z-index:2}
+.hero-note span{font-size:10px;letter-spacing:.12em}
+.hero-note p{font-size:12px;margin:4px 0;color:#667389}
+.hero-line,.hero-figure{display:none}
+@media(max-width:800px){
+.site-header{min-height:82px;padding:10px 5%;gap:10px;flex-wrap:nowrap}
+.brand{order:0;max-width:42%;margin-inline-start:0}
+.brand-mark{width:clamp(118px,32vw,172px);height:64px}
+.mobile-menu{order:3;flex-shrink:0;padding:8px;display:grid;place-items:center}
+.header-cta{order:2;margin-right:auto;padding:11px 13px;font-size:12px;white-space:nowrap;box-shadow:none}
+.main-nav{top:100%;z-index:20;box-shadow:0 14px 28px rgba(0,0,0,.08)}
+.hero{gap:30px;padding:44px 0 55px}
+.hero h1{font-size:clamp(37px,8.2vw,55px);line-height:1.24;letter-spacing:-.025em;overflow-wrap:normal}
+.hero-lead{font-size:15px;line-height:1.95}
+.hero-actions{display:flex;flex-wrap:wrap;gap:14px}
+.hero-actions .primary-btn{padding:13px 15px}
+.hero-visual{min-height:275px;padding:20px;border-radius:15px}
+.hero-stamp{max-width:100%;padding:12px}
+.hero-stamp img{max-height:230px}
+.hero-note{right:17px;bottom:10px}
+.footer-brand img{width:min(205px,65vw)}
+}
+@media(max-width:390px){
+.brand-mark{width:116px;height:57px}
+.header-cta{font-size:11px;padding:10px}
+.hero h1{font-size:clamp(34px,8.8vw,42px)}
+.hero-actions .primary-btn,.hero-actions .text-btn{font-size:12px}
+}
