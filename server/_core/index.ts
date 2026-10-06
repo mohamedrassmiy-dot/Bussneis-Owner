@@ -48,7 +48,7 @@ async function startServer() {
     }catch(e){res.status(503).type("text/plain").send("Sitemap unavailable: CMS database is not configured");}
   });
   app.get("/robots.txt",async(_req,res)=>{
-    const fallback="User-agent: *\\nAllow: /\\nDisallow: /Admin\\nDisallow: /admin\\nDisallow: /api/\\nSitemap: https://bussneis-owner-production.up.railway.app/sitemap.xml\\n";
+    const fallback=["User-agent: *","Allow: /","Disallow: /Admin","Disallow: /admin","Disallow: /api/","Sitemap: https://bussneis-owner-production.up.railway.app/sitemap.xml"].join("\n")+"\n";
     try{
       const settings=await cmsGetSettings();
       const custom=settings.find(x=>x.key==="robots_txt")?.value;
