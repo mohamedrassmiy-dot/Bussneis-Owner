@@ -35,7 +35,7 @@ export function registerCmsMedia(app: Express) {
     const key="cms/"+randomUUID()+"."+type.ext;
     try{
       await media.s3.send(new PutObjectCommand({Bucket:media.bucket,Key:key,Body:req.body,ContentType:type.mime,CacheControl:"public,max-age=86400"}));
-      return res.status(201).json({url:"/media/"+key.slice(4)});
+      return res.status(201).json({url:"https://"+(process.env.RAILWAY_PUBLIC_DOMAIN || req.get("host"))+"/media/"+key.slice(4)});
     }catch(error){console.error("Media upload failed",error);return res.status(502).json({error:"Image upload failed"});}
   });
   app.get("/media/:filename",async(req,res)=>{
