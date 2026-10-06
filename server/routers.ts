@@ -77,7 +77,7 @@ export const appRouter = router({
     importExisting:adminProcedure.mutation(()=>importExistingContent()),
     pages:adminProcedure.query(()=>cmsList("page")),
     posts:adminProcedure.query(()=>cmsList("post")),
-    settings:adminProcedure.query(()=>cmsGetSettings()),
+    settings:adminProcedure.query(async()=> (await cmsGetSettings()).filter(x=>!x.key.startsWith("admin_"))),
     publicSettings:publicProcedure.query(()=>proPublicSettings()),
     savePage:adminProcedure.input(cmsPageInput).mutation(async({input})=>{const result=await cmsSavePage(input);await proAudit("page.save",input.locale+":"+input.slug).catch(()=>{});return result;}),
     savePost:adminProcedure.input(cmsPostInput).mutation(async({input})=>{const result=await cmsSavePost(input);await proAudit("post.save",input.locale+":"+input.slug).catch(()=>{});return result;}),
