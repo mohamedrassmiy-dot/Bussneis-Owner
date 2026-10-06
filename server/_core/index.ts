@@ -32,29 +32,6 @@ async function startServer() {
   app.get("/api/platform/config.js", (_req, res) => {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
   });
-  // Dynamic sitemap reflects only published bilingual CMS content.
-  app.get("/robots.txt",async(_req,res)=>{
-    try{
-      const settings=await cmsGetSettings();
-      const custom=settings.find(x=>x.key==="robots_txt")?.value;
-      res.type("text/plain").send(custom||"User-agent: *\nAllow: /\nDisallow: /Admin\nDisallow: /admin\nDisallow: /api/\nSitemap: https://bussneis-owner-production.up.railway.app/sitemap.xml\n");
-    }catch{res.type("text/plain").send("User-agent: *\nDisallow: /Admin\nDisallow: /api/\n");}
-  });
-  app.get("/sitemap.xml",async(req,res)=>{
-    try{
-      const [pages,posts]=await Promise.all([cmsList("page",true),cmsList("post",true)]);
-      const origin=(process.env.PUBLIC_SITE_URL||"https://bussneis-owner-production.up.railway.app").replace(/\/$/,"");
-      const escapeXml=(x:string)=>x.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-      const urls=[
-        {path:"/",updated:new Date()},
-        {path:"/en",updated:new Date()},
-        ...pages.map(x=>({path:(x.locale==="en"?"/en":"")+"/p/"+encodeURIComponent(x.slug),updated:x.updatedAt})),
-        ...posts.map(x=>({path:(x.locale==="en"?"/en":"")+"/blog/"+encodeURIComponent(x.slug),updated:x.updatedAt}))
-      ];
-      const xml='<?xml version="1.0" encoding="UTF-8"?>'+'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(x=>'<url><loc>'+escapeXml(origin+x.path)+'</loc><lastmod>'+x.updated.toISOString().slice(0,10)+'</lastmod></url>').join("")+'</urlset>';
-      res.type("application/xml").send(xml);
-    }catch(e){res.status(503).type("text/plain").send("Sitemap unavailable: CMS database is not configured");}
-  });
   app.get("/robots.txt",async(_req,res)=>{
     const fallback=["User-agent: *","Allow: /","Disallow: /Admin","Disallow: /admin","Disallow: /api/","Sitemap: https://bussneis-owner-production.up.railway.app/sitemap.xml"].join("\n")+"\n";
     try{
