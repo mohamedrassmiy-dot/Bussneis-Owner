@@ -6,6 +6,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerAdminLogin } from "./adminAuth";
 import { publicPlatformScript } from "./publicConfig";
 import { appRouter } from "../routers";
+import { cmsGetSettings } from "../db";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 
@@ -29,6 +30,18 @@ async function startServer() {
   app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
   app.get("/api/platform/config.js", (_req, res) => {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
+  });
+  // Serve Google Search Console HTML verification without writing arbitrary files.
+  app.use(async (req,res,next)=>{
+    if(!/^\/google[a-z0-9_-]{8,90}\.html$/i.test(req.path))return next();
+    try{
+      const rows=await cmsGetSettings();
+      const map=new Map(rows.map(x=>[x.key,x.value]));
+      const name=map.get("gsc_verification_file_name");
+      const content=map.get("gsc_verification_file_content");
+      if(name!==req.path.slice(1)||content!==`google-site-verification: ${name}`)return next();
+      res.set("Cache-Control","public, max-age=300").type("text/plain; charset=utf-8").send(content);
+    }catch{next()}
   });
   registerAdminLogin(app);
   if (process.env.MANUS_OAUTH_API_URL) registerOAuthRoutes(app);
