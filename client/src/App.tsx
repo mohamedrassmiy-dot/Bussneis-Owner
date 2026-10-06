@@ -129,6 +129,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     setLocation(path);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  if (location.startsWith("/en")) return <>{children}</>;
   if (location === "/Admin") return <div className="site-shell admin-only" dir="rtl"><main>{children}</main></div>;
   return (
     <div className="site-shell" dir="rtl">
