@@ -99,3 +99,20 @@
  .hero-visual{min-height:260px}
  .hero-stamp img{max-height:240px}
 }
+
+
+/* Editorial article covers: purposeful typography instead of empty circles */
+.article-visual{min-height:238px;height:auto;padding:24px;display:flex;flex-direction:column;justify-content:center;align-items:stretch;isolation:isolate;background:linear-gradient(135deg,#e9f2ff 0%,#dfeaff 100%);border-radius:12px;transition:transform .2s ease,box-shadow .2s ease}
+.article-visual:after{content:none!important;display:none!important}
+.article-card.card-1 .article-visual{background:linear-gradient(135deg,#fff0e4,#ffe4cf)}
+.article-card.card-2 .article-visual{background:linear-gradient(135deg,#e9edf4,#dce4ef)}
+.article-visual .article-number{position:absolute;top:17px;right:20px;color:#0867ff;font:700 14px "Space Grotesk",sans-serif}
+.article-visual-content{position:relative;display:flex;flex-direction:column;gap:14px;align-items:flex-start;padding:23px 4px 4px;max-width:95%;z-index:1}
+.article-visual-content .article-visual-kicker{position:static;color:#3865a4;font-size:10px;font-weight:700;letter-spacing:.13em;direction:ltr}
+.article-visual-content strong{color:#101c37;font-size:clamp(19px,2vw,27px);line-height:1.45;font-weight:800;text-align:right;max-width:94%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.article-visual-content .article-visual-category{position:static;color:#395776;font-size:12px;font-weight:600}
+.article-visual>svg{position:absolute;left:20px;bottom:17px;color:#0867ff}
+.article-card:hover .article-visual{transform:translateY(-3px);box-shadow:0 14px 26px rgba(20,60,120,.1)}
+.lead-right .lead-email{display:inline-block;direction:ltr;unicode-bidi:isolate;font-size:13px;overflow-wrap:anywhere;color:inherit;margin-top:14px;text-decoration:underline;text-underline-offset:4px}
+.footer-callout .circle-arrow{display:flex;align-items:center;justify-content:center}
+@media(max-width:800px){.article-visual{min-height:220px;padding:22px}.article-visual-content strong{font-size:clamp(21px,5vw,28px)}.article-visual-content{gap:12px}}
