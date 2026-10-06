@@ -46,7 +46,10 @@ export const leads = mysqlTable("leads", {
   company: varchar("company", { length: 220 }),
   service: varchar("service", { length: 180 }),
   message: text("message").notNull(),
-  status: mysqlEnum("status", ["new", "contacted", "closed"]).default("new").notNull(),
+  status: mysqlEnum("status", ["new", "contacted", "qualified", "proposal", "won", "lost", "closed"]).default("new").notNull(),
+  source: varchar("source", { length: 100 }).default("website"),
+  notes: text("notes"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -113,4 +116,39 @@ export const cmsSettings = mysqlTable("cms_settings", {
   key: varchar("key", { length: 120 }).primaryKey(),
   value: text("value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Operational CMS modules: typed and persistent, never placeholder data. */
+export const cmsRedirects = mysqlTable("cms_redirects", {
+  id: int("id").autoincrement().primaryKey(),
+  sourcePath: varchar("source_path", { length: 250 }).notNull().unique(),
+  destination: varchar("destination", { length: 2048 }).notNull(),
+  type: mysqlEnum("type", ["301","302"]).default("301").notNull(),
+  active: int("active").default(1).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+export const cmsMedia = mysqlTable("cms_media", {
+  id: int("id").autoincrement().primaryKey(),
+  fileKey: varchar("file_key", { length: 150 }).notNull().unique(),
+  publicUrl: text("public_url").notNull(),
+  originalName: varchar("original_name", { length: 220 }),
+  mime: varchar("mime", { length: 80 }).notNull(),
+  bytes: int("bytes").notNull(),
+  alt: varchar("alt", { length: 300 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const cmsAuditEvents = mysqlTable("cms_audit_events", {
+  id: int("id").autoincrement().primaryKey(),
+  action: varchar("action", { length: 80 }).notNull(),
+  subject: varchar("subject", { length: 250 }),
+  details: text("details"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const cmsSecurityEvents = mysqlTable("cms_security_events", {
+  id: int("id").autoincrement().primaryKey(),
+  action: varchar("action", { length: 80 }).notNull(),
+  ipFingerprint: varchar("ip_fingerprint", { length: 64 }).notNull(),
+  userAgent: varchar("user_agent", { length: 300 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
