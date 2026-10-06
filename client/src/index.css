@@ -28,3 +28,8 @@
 .admin-access input{width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:8px;background:white;outline:none}
 .admin-access input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,99,255,.10)}
 .admin-access .primary-btn{justify-self:start}
+
+
+.cms-publish{flex-direction:row!important;align-items:center;gap:10px!important;cursor:pointer}
+.cms-publish input{width:18px;height:18px;accent-color:var(--blue)}
+.lead-form .cms-error{grid-column:1/-1}
