@@ -242,3 +242,17 @@
 .en-footer p{color:#455368}
 .en-footer a{color:#004cb7}
 .en-footer a:hover{color:#003f99}
+
+
+/* Business Owner CMS Page Builder — responsive card layouts */
+.public-cms-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:20px 0}
+.public-cms-card{border:1px solid #dce5ef;background:#fff;padding:20px;border-radius:16px;min-width:0;box-shadow:0 10px 24px rgba(9,34,67,.04)}
+.public-cms-card img{width:100%;height:170px;object-fit:contain;border-radius:10px;background:#f7faff;margin:0 0 16px}
+.public-cms-card h3{font-size:21px;line-height:1.4;margin:5px 0 12px;color:#13243f}
+.public-cms-card p{font-size:15px;line-height:1.85;color:#556a81}
+.public-cms-card a{display:inline-flex;margin-top:15px;font-weight:750;color:#0967ec}
+.public-cms-section details{background:#fff;border:1px solid #d5e3f0;border-radius:14px;padding:20px}
+.public-cms-section summary{font-size:20px;font-weight:800;cursor:pointer}
+.public-cms-section details p{padding-top:15px}
+@media(max-width:900px){.public-cms-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.public-cms-cards{grid-template-columns:1fr}.public-cms-card img{height:210px}}
