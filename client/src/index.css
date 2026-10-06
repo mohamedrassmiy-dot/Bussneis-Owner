@@ -230,3 +230,15 @@
 .en-contact-form .cms-error{grid-column:1/-1}
 .en-contact-success{padding:25px;background:#eaf5ff;border:1px solid #bed9ff;border-radius:12px}
 @media(max-width:620px){.en-contact-form{grid-template-columns:1fr}.en-contact-form label:nth-of-type(5){grid-column:auto}}
+
+
+/* WCAG AA contrast fixes verified against axe-core staging screenshots.
+   Keep brand blues but darken low-contrast secondary labels. */
+.topline{color:#455368}
+.main-nav button,.footer-links button,.footer-links a{color:#49566b}
+.vertical-word{color:#4f5d70}
+.article-meta > span:nth-child(2){color:#48576c}
+.footer-bottom p,.article-card .article-readtime{color:#48576c}
+.en-footer p{color:#455368}
+.en-footer a{color:#004cb7}
+.en-footer a:hover{color:#003f99}
