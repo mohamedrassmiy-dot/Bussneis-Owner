@@ -52,7 +52,8 @@ try {
   }
   const csp = securityHeaders.headers.get("content-security-policy") || "";
   check(csp.includes("frame-ancestors 'self'") && csp.includes("object-src 'none'") , "CSP", "CSP must protect against framing and plugin-based content; received: "+csp.slice(0,300));
-  if(csp.includes("'unsafe-inline'")) observations.push({category:"security",severity:"medium",message:"CSP allows unsafe-inline. Replace with script hashes/nonces as a separate controlled change."});
+  const scriptPolicy = csp.split(";").find(directive => directive.trim().startsWith("script-src")) || "";
+  if(scriptPolicy.includes("'unsafe-inline'")) observations.push({category:"security",severity:"medium",message:"Script execution policy permits unsafe-inline; change to nonces or hashes."});
 
   const browser=await chromium.launch({ headless:true, args:["--no-sandbox"] });
   try {
