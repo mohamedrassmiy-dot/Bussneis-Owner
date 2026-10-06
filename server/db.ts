@@ -95,6 +95,8 @@ export async function cmsGet(kind:"page"|"post", id:number) {
   if(kind==="page")return (await db.select().from(cmsPages).where(eq(cmsPages.id,id)).limit(1))[0]??null;
   return (await db.select().from(cmsPosts).where(eq(cmsPosts.id,id)).limit(1))[0]??null;
 }
+export function cmsFindPublished(kind:"page",slug:string,locale:"ar"|"en"):Promise<typeof cmsPages.$inferSelect|null>;
+export function cmsFindPublished(kind:"post",slug:string,locale:"ar"|"en"):Promise<typeof cmsPosts.$inferSelect|null>;
 export async function cmsFindPublished(kind:"page"|"post",slug:string,locale:"ar"|"en") {
   const rows=await cmsList(kind,true,locale);
   return rows.find(x=>x.slug===slug)??null;
