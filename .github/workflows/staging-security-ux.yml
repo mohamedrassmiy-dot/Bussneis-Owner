@@ -35,6 +35,16 @@ jobs:
           npm install --prefix /tmp/business-owner-qa --no-save --no-package-lock --ignore-scripts playwright@1.56.1 @axe-core/playwright@4.11.1
       - name: Install headless Chromium
         run: /tmp/business-owner-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Test authenticated local CMS and mobile card editor
+        run: node scripts/qa-cms-interactive.mjs
+      - name: Upload interactive CMS UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: interactive-cms-qa
+          path: cms-qa-results/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Check staging security and 3 responsive breakpoints
         env:
           QA_BASE_URL: https://business-owner-v3-staging-production.up.railway.app
