@@ -84,7 +84,9 @@ export function serveStatic(app: Express) {
         };
         let seoTitle=setting("seo_default_title_"+locale)||setting("site_name_"+locale);
         let description=setting("seo_default_description_"+locale)||setting("site_description_"+locale);
-        let canonical="https://"+(process.env.RAILWAY_PUBLIC_DOMAIN || req.get("host"))+req.path;
+        const configuredSiteUrl=setting("site_url").replace(/\/$/,"");
+        const publicBase=/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(configuredSiteUrl)?configuredSiteUrl:"https://"+(process.env.RAILWAY_PUBLIC_DOMAIN || req.get("host"));
+        let canonical=publicBase+req.path;
         let robots="index,follow";
         let openGraphImage=setting("default_og_image")||"/business-owner-transparent.png";
         const parts=req.path.split("/").filter(Boolean);
