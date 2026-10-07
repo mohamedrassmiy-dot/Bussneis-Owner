@@ -57,7 +57,7 @@ const baseCms = {
 };
 const cmsPageInput=z.object({...baseCms,summary:z.string().max(3000).optional().nullable(),sections:z.array(section).max(80)});
 const cmsPostInput=z.object({...baseCms,excerpt:z.string().min(10),body:z.string().min(10),category:z.string().max(120).optional().nullable(),embeds:z.array(z.object({type:z.enum(["video","iframe"]),url:embedUrl,title:z.string().max(200).optional()})).max(20).optional().nullable()});
-const settingInput=z.object({key:z.enum(["site_name_ar","site_name_en","site_description_ar","site_description_en","default_og_image","google_site_verification","gsc_verification_file_name","gsc_verification_file_content","robots_txt","head_embed","footer_embed","contact_email","favicon_url","brand_tagline_ar","brand_tagline_en","seo_default_title_ar","seo_default_title_en","seo_default_description_ar","seo_default_description_en","ga4_id","gtm_id","global_schema_json"]),value:z.string().max(30000)});
+const settingInput=z.object({key:z.enum(["site_name_ar","site_name_en","site_description_ar","site_description_en","site_url","location","timezone","default_og_image","google_site_verification","gsc_verification_file_name","gsc_verification_file_content","robots_txt","head_embed","footer_embed","contact_email","favicon_url","brand_tagline_ar","brand_tagline_en","seo_default_title_ar","seo_default_title_en","seo_default_description_ar","seo_default_description_en","ga4_id","gtm_id","global_schema_json"]),value:z.string().max(30000)});
 
 export const appRouter = router({
   system: systemRouter,
@@ -84,6 +84,7 @@ export const appRouter = router({
     savePost:adminProcedure.input(cmsPostInput).mutation(async({input})=>{const result=await cmsSavePost(input);await proAudit("post.save",input.locale+":"+input.slug).catch(()=>{});return result;}),
     deleteContent:adminProcedure.input(z.object({kind:z.enum(["page","post"]),id:z.number().int().positive()})).mutation(async({input})=>{const result=await cmsDelete(input.kind,input.id);await proAudit("content.delete",input.kind+":"+input.id).catch(()=>{});return result;}),
     saveSetting:adminProcedure.input(settingInput).mutation(async({input})=>{
+      if(input.key==="site_url" && input.value && !/^https:\/\/[a-z0-9.-]+(?::\d+)?(?:\/.*)?$/i.test(input.value)) throw new Error("Site URL must be HTTPS");
       if(input.key==="gsc_verification_file_name" && input.value && !/^google[a-z0-9_-]{8,90}\.html$/i.test(input.value)) throw new Error("Invalid GSC verification filename");
       if(input.key==="global_schema_json" && input.value){try{JSON.parse(input.value)}catch{throw new Error("Invalid JSON-LD")}}
       const result=await cmsSetSetting(input.key,input.value);
