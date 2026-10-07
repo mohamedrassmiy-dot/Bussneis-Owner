@@ -35,7 +35,7 @@ async function startServer() {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
   });
   app.get("/robots.txt",async(_req,res)=>{
-    const fallback=["User-agent: *","Allow: /","Disallow: /Admin","Disallow: /admin","Disallow: /api/","Sitemap: https://bussneis-owner-production.up.railway.app/sitemap.xml"].join("\n")+"\n";
+    const fallback=["User-agent: *","Allow: /","Disallow: /Admin","Disallow: /admin","Disallow: /api/","Sitemap: https://bussneis-owner.up.railway.app/sitemap.xml"].join("\n")+"\n";
     try{
       const settings=await cmsGetSettings();
       const custom=settings.find(x=>x.key==="robots_txt")?.value;
@@ -45,7 +45,7 @@ async function startServer() {
   app.get("/sitemap.xml",async(req,res)=>{
     try{
       const [pages,posts]=await Promise.all([cmsList("page",true),cmsList("post",true)]);
-      const base="https://bussneis-owner-production.up.railway.app";
+      const base="https://bussneis-owner.up.railway.app";
       const urls=[base+"/",base+"/en",...pages.filter(p=>p.robots==="index,follow").map(p=>base+(p.locale==="en"?"/en":"")+"/p/"+encodeURIComponent(p.slug)),...posts.filter(p=>p.robots==="index,follow").map(p=>base+(p.locale==="en"?"/en":"")+"/blog/"+encodeURIComponent(p.slug))];
       const escapeXml=(s:string)=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
       res.type("application/xml").send('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+urls.map(url=>"<url><loc>"+escapeXml(url)+"</loc></url>").join("")+"</urlset>");
