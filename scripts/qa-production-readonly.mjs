@@ -4,7 +4,7 @@ import path from "node:path";
 import { createRequire } from "node:module";
 const requireQA=createRequire("/tmp/business-owner-qa/package.json");
 const {chromium}=requireQA("playwright");
-const BASE="https://bussneis-owner-production.up.railway.app";
+const BASE="https://bussneis-owner.up.railway.app";
 const output="production-smoke-results";
 fs.mkdirSync(output,{recursive:true});
 const problems=[];
