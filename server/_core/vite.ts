@@ -84,7 +84,7 @@ export function serveStatic(app: Express) {
         };
         let seoTitle=setting("seo_default_title_"+locale)||setting("site_name_"+locale);
         let description=setting("seo_default_description_"+locale)||setting("site_description_"+locale);
-        let canonical="https://bussneis-owner-production.up.railway.app"+req.path;
+        let canonical="https://"+(process.env.RAILWAY_PUBLIC_DOMAIN || req.get("host"))+req.path;
         let robots="index,follow";
         let openGraphImage=setting("default_og_image")||"/business-owner-transparent.png";
         const parts=req.path.split("/").filter(Boolean);
