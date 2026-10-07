@@ -1,6 +1,7 @@
 import { importExistingContent } from "../cmsImport";
 import { originalArticles, originalServices } from "../cmsLegacyData";
 import { restoreOriginalArticleDrafts } from "../repairLegacyDrafts";
+import { seedBusinessOwnerSettings } from "../cmsDefaults";
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
@@ -142,7 +143,8 @@ async function startServer() {
     try {
       const result = await importExistingContent();
       const repair = await restoreOriginalArticleDrafts();
-      console.log("[CMS] Existing-content draft import:", { ...result, ...repair });
+      const defaults = await seedBusinessOwnerSettings();
+      console.log("[CMS] Existing-content draft import:", { ...result, ...repair, defaultSettingsInserted: defaults.inserted });
     } catch (error) {
       console.error("[CMS] Draft import failed; public site remains available:", error);
     }
