@@ -79,10 +79,16 @@ async function startServer() {
     try{
       const rows=await cmsGetSettings();
       const map=new Map(rows.map(x=>[x.key,x.value]));
-      const name=map.get("gsc_verification_file_name");
-      const content=map.get("gsc_verification_file_content");
-      if(name!==req.path.slice(1)||content!==`google-site-verification: ${name}`)return next();
-      res.set("Cache-Control","public, max-age=300").type("text/plain; charset=utf-8").send(content);
+      const storedName=(map.get("gsc_verification_file_name")||"").trim();
+      const content=(map.get("gsc_verification_file_content")||"").trim();
+      const contentMatch=/^google-site-verification:\s*(google[a-z0-9_-]{8,90}\.html)$/i.exec(content);
+      // Browsers may rename duplicate downloads to "google... 3.html" or "(3)".
+      // Google requires the canonical filename embedded inside the official file content.
+      const canonicalName=contentMatch?.[1] || storedName;
+      if(!/^google[a-z0-9_-]{8,90}\.html$/i.test(canonicalName)||canonicalName!==req.path.slice(1))return next();
+      if(contentMatch && contentMatch[1].toLowerCase()!==canonicalName.toLowerCase())return next();
+      const canonicalContent=`google-site-verification: ${canonicalName}`;
+      res.set("Cache-Control","public, max-age=300").type("text/plain; charset=utf-8").send(canonicalContent);
     }catch{next()}
   });
   // Active, admin-managed internal 301/302 redirects: before the SPA fallback.
