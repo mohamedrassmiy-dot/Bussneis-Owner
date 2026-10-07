@@ -6,6 +6,23 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 
+function injectGoogleSiteVerification(html: string) {
+  const token = String(process.env.GOOGLE_SITE_VERIFICATION || "").trim();
+  if (!token) return html;
+
+  const safeToken = token
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  const meta = `<meta name="google-site-verification" content="${safeToken}" />`;
+  const existing = /<meta\s+name=["']google-site-verification["'][^>]*>/i;
+
+  if (existing.test(html)) return html.replace(existing, meta);
+  return html.replace(/<\/head>/i, `  ${meta}\n  </head>`);
+}
+
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
@@ -38,7 +55,8 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
       );
-      const page = await vite.transformIndexHtml(url, template);
+      const transformed = await vite.transformIndexHtml(url, template);
+      const page = injectGoogleSiteVerification(transformed);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
       vite.ssrFixStacktrace(e as Error);
@@ -52,16 +70,34 @@ export function serveStatic(app: Express) {
     process.env.NODE_ENV === "development"
       ? path.resolve(import.meta.dirname, "../..", "dist", "public")
       : path.resolve(import.meta.dirname, "public");
+
   if (!fs.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
 
-  app.use(express.static(distPath));
+  const indexPath = path.resolve(distPath, "index.html");
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
-  });
+  const sendIndex = async (_req: express.Request, res: express.Response) => {
+    try {
+      const html = await fs.promises.readFile(indexPath, "utf-8");
+      res
+        .status(200)
+        .type("html")
+        .send(injectGoogleSiteVerification(html));
+    } catch (error) {
+      console.error("Failed to render index.html:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  };
+
+  // Keep the homepage/index dynamic so Search Console can verify the Railway URL
+  // from GOOGLE_SITE_VERIFICATION without rebuilding the frontend.
+  app.get(["/", "/index.html"], sendIndex);
+
+  app.use(express.static(distPath, { index: false }));
+
+  // fall through to the SPA index.html if the file doesn't exist
+  app.use("*", sendIndex);
 }
