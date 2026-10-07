@@ -104,6 +104,6 @@ export async function proSeoAudit(){
 }
 export async function proPublicSettings(){
  const db=await dbRequired();const rows=await db.select().from(cmsSettings);
- const allowed=new Set(["site_name_ar","site_name_en","site_description_ar","site_description_en","default_og_image","google_site_verification","contact_email","favicon_url","brand_tagline_ar","brand_tagline_en"]);
+ const allowed=new Set(["site_name_ar","site_name_en","site_description_ar","site_description_en","site_url","location","timezone","default_og_image","google_site_verification","contact_email","favicon_url","brand_tagline_ar","brand_tagline_en"]);
  return Object.fromEntries(rows.filter(x=>allowed.has(x.key)).map(x=>[x.key,x.value]));
 }
