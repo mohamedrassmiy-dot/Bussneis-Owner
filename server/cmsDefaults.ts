@@ -17,6 +17,8 @@ const defaults:Record<string,string>={
   seo_default_title_en:"Business Owner | Strategy, Growth & Marketing",
   seo_default_description_ar:"معرفة واستشارات عملية تساعد أصحاب الأعمال على بناء عرض أوضح، تسويق أقوى ونظام نمو قابل للقياس.",
   seo_default_description_en:"Practical business strategy, marketing, growth and SEO insight for owners who want clearer decisions and measurable execution.",
+  gsc_verification_file_name:"googlef284124f6e4cc6fb.html",
+  gsc_verification_file_content:"google-site-verification: googlef284124f6e4cc6fb.html",
   global_schema_json:JSON.stringify({
     "@context":"https://schema.org","@type":"Organization","name":"Business Owner",
     "url":"https://bussneis-owner.up.railway.app/",
@@ -27,11 +29,22 @@ const defaults:Record<string,string>={
 };
 export async function seedBusinessOwnerSettings(){
  const existing=await cmsGetSettings();
- const known=new Set(existing.map(x=>x.key));
- let inserted=0;
+ const current=new Map(existing.map(x=>[x.key,x.value]));
+ let inserted=0,repaired=0;
  for(const [key,value] of Object.entries(defaults)){
-   if(known.has(key))continue;
+   if(current.has(key))continue;
    await cmsSetSetting(key,value);inserted++;
  }
- return {inserted,totalDefaults:Object.keys(defaults).length};
+ // The Business Owner GSC file supplied by the owner was renamed by the mobile browser
+ // (for example "... 3.html"). Search Console requires the canonical name inside the file.
+ const canonicalName="googlef284124f6e4cc6fb.html";
+ const canonicalContent="google-site-verification: "+canonicalName;
+ const storedName=(current.get("gsc_verification_file_name")||"").trim();
+ const storedContent=(current.get("gsc_verification_file_content")||"").trim();
+ if(storedName!==canonicalName||storedContent!==canonicalContent){
+   await cmsSetSetting("gsc_verification_file_name",canonicalName);
+   await cmsSetSetting("gsc_verification_file_content",canonicalContent);
+   repaired=1;
+ }
+ return {inserted,repaired,totalDefaults:Object.keys(defaults).length};
 }
