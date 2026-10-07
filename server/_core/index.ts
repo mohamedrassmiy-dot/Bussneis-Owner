@@ -46,8 +46,10 @@ async function startServer() {
   });
   app.get("/sitemap.xml",async(req,res)=>{
     try{
-      const [pages,posts]=await Promise.all([cmsList("page",true),cmsList("post",true)]);
-      const base="https://bussneis-owner.up.railway.app";
+      const [pages,posts,settings]=await Promise.all([cmsList("page",true),cmsList("post",true),cmsGetSettings()]);
+      const configuredBase=(settings.find(x=>x.key==="site_url")?.value||"").replace(/\/$/,"");
+      const runtimeBase="https://"+(process.env.RAILWAY_PUBLIC_DOMAIN||req.get("host"));
+      const base=/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(configuredBase)?configuredBase:runtimeBase;
       const originalPaths=[
         "/","/en","/services","/en/services","/articles","/en/articles",
         "/about","/en/about","/contact","/en/contact",
