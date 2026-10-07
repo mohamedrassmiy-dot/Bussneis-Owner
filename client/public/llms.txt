@@ -19,4 +19,4 @@ Business Owner publishes practical frameworks about business strategy, business 
 - /about
 - /contact
 
-Canonical site: https://bussneis-owner-production.up.railway.app/
+Canonical site: https://bussneis-owner.up.railway.app/
