@@ -63,3 +63,5 @@ const result={pass:problems.length===0,passed:passed.length,failures:problems,sc
 fs.writeFileSync(path.join(output,"report.json"),JSON.stringify(result,null,2));
 console.log("PROD_SMOKE_REPORT="+JSON.stringify(result));
 if(!result.pass)process.exitCode=1;
+
+// CMS Pro live verification marker 2026-10-07
