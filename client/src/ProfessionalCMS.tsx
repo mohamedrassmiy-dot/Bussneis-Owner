@@ -8,7 +8,7 @@ import { ProContent } from "./cms/ProContent";
 import "./cms/pro-cms.css";
 export type ProTab="dashboard"|"pages"|"posts"|"media"|"leads"|"seo"|"redirects"|"settings"|"security"|"activity";
 export type ProLanguage="ar"|"en";
-export const siteDomain="https://bussneis-owner-production.up.railway.app";
+export const siteDomain="https://bussneis-owner.up.railway.app";
 const menuEntries=[
   {id:"dashboard" as const,ar:"الرئيسية",en:"Dashboard",Icon:LayoutDashboard,group:"main"},
   {id:"pages" as const,ar:"الصفحات",en:"Pages",Icon:Files,group:"content"},
