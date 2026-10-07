@@ -1,4 +1,4 @@
-/** Read-only post-deployment smoke check against the actual production hostname. */
+/** Read-only post-deployment smoke check against the actual production hostname. Deployment verification: 2026-10-07. */
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
