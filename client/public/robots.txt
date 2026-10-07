@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api/
-Sitemap: https://bussneis-owner-production.up.railway.app/sitemap.xml
+Sitemap: https://bussneis-owner.up.railway.app/sitemap.xml
