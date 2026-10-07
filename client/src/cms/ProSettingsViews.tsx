@@ -59,10 +59,15 @@ export function ProSettings({locale}:{locale:ProLanguage}){
   }catch(error){setNotice(tx(locale,"تعذر الحفظ: ","Save failed: ")+(error instanceof Error?error.message:String(error)));}
  };
  const parseGscFile=async(f:File)=>{
-  if(f.size>10000||!/^google[a-z0-9_-]{8,90}\.html$/i.test(f.name)){setNotice(tx(locale,"اسم ملف التحقق غير صالح أو أكبر من 10KB.","Invalid Google verification file or size exceeds 10KB."));return;}
+  if(f.size>10000){setNotice(tx(locale,"ملف التحقق أكبر من 10KB.","Google verification file exceeds 10KB."));return;}
   const content=(await f.text()).trim();
-  if(content!==`google-site-verification: ${f.name}`){setNotice(tx(locale,"محتوى الملف غير مطابق لاسم ملف Google.","File contents must match the official Google verification format."));return;}
-  setFile({name:f.name,content});setNotice(tx(locale,"ملف التحقق جاهز للحفظ.","Verification file is ready to save."));
+  const match=/^google-site-verification:\s*(google[a-z0-9_-]{8,90}\.html)$/i.exec(content);
+  if(!match){setNotice(tx(locale,"محتوى الملف ليس بصيغة Google الرسمية.","The file does not contain a valid Google verification directive."));return;}
+  const canonicalName=match[1];
+  setFile({name:canonicalName,content:`google-site-verification: ${canonicalName}`});
+  setNotice(f.name===canonicalName
+    ?tx(locale,"ملف التحقق جاهز للحفظ.","Verification file is ready to save.")
+    :tx(locale,`تم اكتشاف أن الهاتف غيّر اسم الملف إلى «${f.name}». سيتم استخدام اسم Google الأصلي «${canonicalName}» تلقائيًا.`,`Your device renamed the download to “${f.name}”. The original Google filename “${canonicalName}” will be used automatically.`));
  };
  const saveGsc=async()=>{
   setNotice("");
