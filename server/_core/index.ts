@@ -37,7 +37,7 @@ async function startServer() {
     res.set("Cache-Control", "no-store").type("application/javascript").send(publicPlatformScript());
   });
   app.get("/robots.txt",async(_req,res)=>{
-    const fallback=["User-agent: *","Allow: /","Disallow: /Admin","Disallow: /admin","Disallow: /api/","Sitemap: https://bussneis-owner-production.up.railway.app/sitemap.xml"].join("\n")+"\n";
+    const fallback=["User-agent: *","Allow: /","Disallow: /Admin","Disallow: /admin","Disallow: /api/","Sitemap: https://bussneis-owner.up.railway.app/sitemap.xml"].join("\n")+"\n";
     try{
       const settings=await cmsGetSettings();
       const custom=settings.find(x=>x.key==="robots_txt")?.value;
@@ -47,7 +47,7 @@ async function startServer() {
   app.get("/sitemap.xml",async(req,res)=>{
     try{
       const [pages,posts]=await Promise.all([cmsList("page",true),cmsList("post",true)]);
-      const base="https://bussneis-owner-production.up.railway.app";
+      const base="https://bussneis-owner.up.railway.app";
       const originalPaths=[
         "/","/en","/services","/en/services","/articles","/en/articles",
         "/about","/en/about","/contact","/en/contact",
