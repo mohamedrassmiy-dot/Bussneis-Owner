@@ -21,6 +21,8 @@ try{
   assert(robots.response.status===200 && /Disallow:\s*\/Admin/.test(robots.body),"robots","Admin must be excluded from robots");
   const sitemap=await probe("/sitemap.xml");
   assert(sitemap.response.status===200 && sitemap.body.includes("<urlset"),"sitemap","Sitemap unavailable or malformed");
+  const gsc=await probe("/googlef284124f6e4cc6fb.html");
+  assert(gsc.response.status===200 && gsc.body.trim()==="google-site-verification: googlef284124f6e4cc6fb.html","gsc-html-file","Google verification file must be served with the canonical filename/content expected by Search Console; got status "+gsc.response.status+" body "+gsc.body.slice(0,120));
   const privateApi=await probe("/api/trpc/cms.pages");
   assert([401,403].includes(privateApi.response.status),"unauthorized-cms","Private CMS list exposed or otherwise unavailable: "+privateApi.response.status);
   const browser=await chromium.launch({headless:true,args:["--no-sandbox"]});
