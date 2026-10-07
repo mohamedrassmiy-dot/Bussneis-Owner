@@ -4,7 +4,7 @@ import { Image as ImageIcon, UploadCloud,Copy,ExternalLink,RefreshCw,ShieldCheck
 import type { ProLanguage } from "../ProfessionalCMS";
 const tx=(locale:ProLanguage,ar:string,en:string)=>locale==="ar"?ar:en;
 type SettingKey=
-  "site_name_ar"|"site_name_en"|"site_description_ar"|"site_description_en"|"contact_email"|"favicon_url"|"brand_tagline_ar"|"brand_tagline_en"
+  "site_name_ar"|"site_name_en"|"site_description_ar"|"site_description_en"|"site_url"|"location"|"timezone"|"contact_email"|"favicon_url"|"brand_tagline_ar"|"brand_tagline_en"
   |"seo_default_title_ar"|"seo_default_title_en"|"seo_default_description_ar"|"seo_default_description_en"
   |"default_og_image"|"global_schema_json"|"ga4_id"|"gtm_id"|"google_site_verification"
   |"gsc_verification_file_name"|"gsc_verification_file_content"|"robots_txt"|"head_embed"|"footer_embed";
@@ -17,6 +17,9 @@ const sections:{key:string;ar:string;en:string;fields:InputDef[]}[]=[
   {key:"site_description_en",ar:"وصف الموقع بالإنجليزية",en:"English description",rows:3},
   {key:"brand_tagline_ar",ar:"شعار نصّي بالعربية",en:"Arabic tagline"},
   {key:"brand_tagline_en",ar:"شعار نصّي بالإنجليزية",en:"English tagline"},
+  {key:"site_url",ar:"رابط الموقع الرسمي",en:"Official site URL",hint:"https://bussneis-owner.up.railway.app"},
+  {key:"location",ar:"الموقع",en:"Location",hint:"Riyadh, Saudi Arabia"},
+  {key:"timezone",ar:"المنطقة الزمنية",en:"Timezone",hint:"Asia/Riyadh"},
   {key:"contact_email",ar:"بريد التواصل",en:"Contact email"},
   {key:"favicon_url",ar:"مسار أيقونة الموقع",en:"Favicon URL",hint:"/business-owner-transparent.png"},
  ]},
