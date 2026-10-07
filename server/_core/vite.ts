@@ -110,7 +110,11 @@ export function serveStatic(app: Express) {
             }
           }
         }
-        const token = setting("google_site_verification");
+        const rawToken = setting("google_site_verification").trim();
+        const tokenMatch =
+          /^<meta[^>]+name=["']google-site-verification["'][^>]+content=["']([^"']+)["'][^>]*>$/i.exec(rawToken)
+          || /^<meta[^>]+content=["']([^"']+)["'][^>]+name=["']google-site-verification["'][^>]*>$/i.exec(rawToken);
+        const token=(tokenMatch?.[1]||rawToken).trim();
         if(/^[A-Za-z0-9_-]{10,150}$/.test(token))updateMeta("name","google-site-verification",token);
         updateMeta("name","description",description);
         updateMeta("name","robots",robots);
