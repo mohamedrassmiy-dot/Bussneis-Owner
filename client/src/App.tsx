@@ -134,7 +134,8 @@ function Shell({ children }: { children: React.ReactNode }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   if(location.startsWith("/en"))return <>{children}</>;
-  if(location==="/Admin"||location==="/admin")return <div className="site-shell admin-only" dir="rtl"><main>{children}</main></div>;
+  if(location==="/Admin"||location==="/admin")return <div className="site-shell admin-only" dir="rtl"><main>{children}</main>
+      <section className="section-wrap" style={{paddingBlock:"36px",maxWidth:"1050px"}}><h2>تحتاج استشارة بيزنس تناسب مشروعك؟</h2><p>Business Owner تساعد أصحاب الأعمال في قطاعات التجارة والمقاولات والمطاعم والمتاجر الإلكترونية والخدمات على تحديد المشكلات التجارية، وبناء خطة نمو، وتحسين التسويق والتشغيل. اختر استشارة أعمال متخصصة حسب حجم النشاط والمرحلة الحالية.</p><a href="/business-consulting" className="primary-btn">استكشف استشارات الأعمال ←</a></section></div>;
   return (
     <div className="site-shell" dir="rtl">
       <div className="topline"><span>Business Owner / معرفة تتحول إلى حركة</span><span>متاح لمشاريع مختارة في 2026</span></div>
@@ -145,6 +146,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         </button>
         <nav className={open ? "main-nav open" : "main-nav"}>
           {links.map(([path, label]) => <button key={path} className={location === path ? "active" : ""} onClick={() => go(path)}>{label}</button>)}
+          <a href="/business-consulting" style={{color:"#0a63ff",fontSize:"14px",fontWeight:700}}>استشارة بيزنس</a>
         </nav>
         <a className="cms-language-link" href="/en" lang="en">EN</a>
         <button className="header-cta" onClick={() => { window.location.href = "mailto:bussneis.owner@gmail.com?subject=Business%20Owner%20-%20استفسار"; }}>راسلنا <ArrowUpLeft size={16} /></button>
