@@ -1,5 +1,6 @@
 import { importExistingContent } from "../cmsImport";
 import { originalArticles, originalServices } from "../cmsLegacyData";
+import { registerBusinessConsultingSeo, CONSULTING_PATHS } from "../businessConsultingSeo";
 import { restoreOriginalArticleDrafts } from "../repairLegacyDrafts";
 import { seedBusinessOwnerSettings } from "../cmsDefaults";
 import "dotenv/config";
@@ -55,7 +56,8 @@ async function startServer() {
         "/","/en","/services","/en/services","/articles","/en/articles",
         "/about","/en/about","/contact","/en/contact",
         ...originalServices.map(x=>(x.locale==="en"?"/en":"")+"/services/"+encodeURIComponent(x.slug)),
-        ...originalArticles.map(x=>(x.locale==="en"?"/en":"")+"/articles/"+encodeURIComponent(x.slug))
+        ...originalArticles.map(x=>(x.locale==="en"?"/en":"")+"/articles/"+encodeURIComponent(x.slug)),
+        ...CONSULTING_PATHS
       ];
       const pagePath=(p:typeof pages[number])=>{
         const prefix=p.locale==="en"?"/en":"";
@@ -108,6 +110,8 @@ async function startServer() {
     }catch(err){console.warn("[Redirect] lookup failed",err instanceof Error?err.message:String(err));}
     next();
   });
+  // Dedicated, server-rendered business consulting landing pages for all sectors.
+  registerBusinessConsultingSeo(app);
   registerAdminLogin(app);
   registerCmsMedia(app);
   if (process.env.MANUS_OAUTH_API_URL) registerOAuthRoutes(app);
