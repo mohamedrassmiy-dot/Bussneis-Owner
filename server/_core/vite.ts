@@ -6,6 +6,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 import { cmsFindPublished, cmsGetSettings } from "../db";
+import { legacySearchSeo } from "../legacySearchSeo";
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -130,6 +131,29 @@ export function serveStatic(app: Express) {
         if(globalSchema){try{JSON.parse(globalSchema);html=html.replace("</head>",'<script type="application/ld+json">'+globalSchema.replace(/</g,"\\u003c")+'</script></head>');}catch{}}
       } catch (error) {
         console.error("[CMS SEO] Public metadata lookup failed", error instanceof Error?error.message:String(error));
+      }
+      // Make public React pages useful to crawlers before client-side JavaScript runs.
+      // React's createRoot replaces this initial content on the client. Admin/API paths
+      // never pass through this public fallback.
+      const initial = legacySearchSeo(req.path);
+      if(initial){
+        const safe=(v:string)=>v.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+        html=html.replace(/<title>[^<]*<\/title>/i,"<title>"+safe(initial.title)+"</title>");
+        html=html.replace(/<meta name="description" content="[^"]*"\s*\/?>/i,
+          '<meta name="description" content="'+safe(initial.description)+'" />');
+        html=html.replace(/<meta property="og:title" content="[^"]*"\s*\/?>/i,
+          '<meta property="og:title" content="'+safe(initial.title)+'" />');
+        html=html.replace(/<meta property="og:description" content="[^"]*"\s*\/?>/i,
+          '<meta property="og:description" content="'+safe(initial.description)+'" />');
+        html=html.replace(/<link rel="canonical" href="[^"]*"\s*\/?>/i,
+          '<link rel="canonical" href="'+safe(initial.canonical)+'" />');
+        html=html.replace(/<html([^>]*)>/i,(full,attrs)=>{
+          let out=attrs.replace(/\s+lang="[^"]*"/i,"").replace(/\s+dir="[^"]*"/i,"");
+          return '<html'+out+' lang="'+initial.locale+'" dir="'+(initial.locale==="ar"?"rtl":"ltr")+'">';
+        });
+        const alternate=initial.locale==="en"?initial.canonical.replace(/\/en(?=\/|$)/,""):initial.canonical.replace("railway.app/","railway.app/en/");
+        html=html.replace("</head>",'<link rel="alternate" hreflang="'+(initial.locale==="en"?"ar":"en")+'" href="'+safe(alternate)+'" /></head>');
+        html=html.replace(/<div id="root">\s*<\/div>/i,'<div id="root">'+initial.html+'</div>');
       }
       res.set("Cache-Control", "no-store").type("html").send(html);
     } catch (error) { next(error); }
