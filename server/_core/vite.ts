@@ -65,11 +65,13 @@ export function serveStatic(app: Express) {
   // fall through to index.html if the file doesn't exist
   app.use("*", async (req, res, next) => {
     try {
+      // Express wildcard mounting may rewrite requestedPath to /. The original URL preserves the real route.
+      const requestedPath = new URL(req.originalUrl, "http://internal.local").pathname;
       let html = await fs.promises.readFile(path.resolve(distPath, "index.html"), "utf8");
       try {
         const settings = await cmsGetSettings();
         const setting = (key:string)=>settings.find(x=>x.key===key)?.value||"";
-        const locale = req.path==="/en"||req.path.startsWith("/en/")?"en":"ar";
+        const locale = requestedPath==="/en"||requestedPath.startsWith("/en/")?"en":"ar";
         const escapeHtml = (value:string)=>value.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
         const updateMeta=(attr:"name"|"property",key:string,value:string)=>{
           if(!value)return;
@@ -87,10 +89,10 @@ export function serveStatic(app: Express) {
         let description=setting("seo_default_description_"+locale)||setting("site_description_"+locale);
         const configuredSiteUrl=setting("site_url").replace(/\/$/,"");
         const publicBase=/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(configuredSiteUrl)?configuredSiteUrl:"https://"+(process.env.RAILWAY_PUBLIC_DOMAIN || req.get("host"));
-        let canonical=publicBase+req.path;
+        let canonical=publicBase+requestedPath;
         let robots="index,follow";
         let openGraphImage=setting("default_og_image")||"/business-owner-transparent.png";
-        const parts=req.path.split("/").filter(Boolean);
+        const parts=requestedPath.split("/").filter(Boolean);
         const contentPath=locale==="en"?parts.slice(1):parts;
         let kind:"page"|"post"|null=null;
         let slug="";
@@ -135,7 +137,7 @@ export function serveStatic(app: Express) {
       // Make public React pages useful to crawlers before client-side JavaScript runs.
       // React's createRoot replaces this initial content on the client. Admin/API paths
       // never pass through this public fallback.
-      const initial = legacySearchSeo(req.path);
+      const initial = legacySearchSeo(requestedPath);
       if(initial){
         const safe=(v:string)=>v.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
         html=html.replace(/<title>[^<]*<\/title>/i,"<title>"+safe(initial.title)+"</title>");
