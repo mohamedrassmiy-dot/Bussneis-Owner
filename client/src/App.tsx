@@ -134,8 +134,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   if(location.startsWith("/en"))return <>{children}</>;
-  if(location==="/Admin"||location==="/admin")return <div className="site-shell admin-only" dir="rtl"><main>{children}</main>
-      <section className="section-wrap" style={{paddingBlock:"36px",maxWidth:"1050px"}}><h2>تحتاج استشارة بيزنس تناسب مشروعك؟</h2><p>Business Owner تساعد أصحاب الأعمال في قطاعات التجارة والمقاولات والمطاعم والمتاجر الإلكترونية والخدمات على تحديد المشكلات التجارية، وبناء خطة نمو، وتحسين التسويق والتشغيل. اختر استشارة أعمال متخصصة حسب حجم النشاط والمرحلة الحالية.</p><a href="/business-consulting" className="primary-btn">استكشف استشارات الأعمال ←</a></section></div>;
+  if(location==="/Admin"||location==="/admin")return <div className="site-shell admin-only" dir="rtl"><main>{children}</main></div>;
   return (
     <div className="site-shell" dir="rtl">
       <div className="topline"><span>Business Owner / معرفة تتحول إلى حركة</span><span>متاح لمشاريع مختارة في 2026</span></div>
@@ -149,11 +148,11 @@ function Shell({ children }: { children: React.ReactNode }) {
           <a href="/business-consulting" style={{color:"#0a63ff",fontSize:"14px",fontWeight:700}}>استشارة بيزنس</a>
         </nav>
         <a className="cms-language-link" href="/en" lang="en">EN</a>
-        <button className="header-cta" onClick={() => { window.location.href = "mailto:bussneis.owner@gmail.com?subject=Business%20Owner%20-%20استفسار"; }}>راسلنا <ArrowUpLeft size={16} /></button>
+        <button className="header-cta" onClick={() => { window.location.assign("/consultation?service=business-consulting&from=%2F"); }}>اطلب استشارة <ArrowUpLeft size={16} /></button>
       </header>
       <main>{children}</main>
       <footer className="site-footer">
-        <div className="footer-callout"><span className="section-kicker">هل لديك فكرة تستحق الحركة؟</span><h2>لنحوّلها إلى عرض<br /><em>يفهمه السوق.</em></h2><a className="circle-arrow" href="mailto:bussneis.owner@gmail.com" aria-label="راسل Business Owner بالبريد"><Mail /></a></div>
+        <div className="footer-callout"><span className="section-kicker">هل لديك فكرة تستحق الحركة؟</span><h2>لنحوّلها إلى عرض<br /><em>يفهمه السوق.</em></h2><a className="circle-arrow" href="/consultation?service=business-consulting" aria-label="اطلب استشارة أعمال"><Mail /></a></div>
         <div className="footer-bottom"><div className="footer-brand"><img src={logo} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = fallbackLogo; }} alt="Business Owner — الشعار الرسمي" /></div><p>معرفة عملية. قرارات أوضح. نمو يتحرك.</p><div className="footer-links"><button onClick={() => go("/articles")}>المقالات</button><button onClick={() => go("/services")}>الخدمات</button><a href="https://www.linkedin.com/company/81373254" target="_blank" rel="noreferrer"><Linkedin size={16} /> LinkedIn</a></div></div>
       </footer>
     </div>
@@ -164,7 +163,7 @@ function Home() {
   const [, setLocation] = useLocation();
   return <>
     <section className="hero section-wrap">
-      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-dot" /> استشارات ونمو للأعمال الجادة</div><h1>استشارات أعمال<br /><span>لأصحاب المشاريع</span><br />ونمو البيزنس.</h1><p className="hero-lead">تحتاج استشارة بيزنس لشركتك أو مشروعك؟ Business Owner تساعد أصحاب الأعمال في السعودية على تشخيص تحديات التشغيل، التسويق، التخطيط والنمو، وتحويل القرارات إلى خطوات واقعية تناسب نشاطك.</p><div className="hero-actions"><button className="primary-btn" onClick={() => { window.location.href = "mailto:bussneis.owner@gmail.com?subject=Business%20Owner%20-%20مشروعي"; }}>احكِ لنا عن مشروعك <ArrowUpLeft size={18} /></button><button className="text-btn" onClick={() => setLocation("/articles")}>استكشف المعرفة <ArrowLeft size={18} /></button></div></div>
+      <div className="hero-copy"><div className="eyebrow"><span className="eyebrow-dot" /> استشارات ونمو للأعمال الجادة</div><h1>استشارات أعمال<br /><span>لأصحاب المشاريع</span><br />ونمو البيزنس.</h1><p className="hero-lead">تحتاج استشارة بيزنس لشركتك أو مشروعك؟ Business Owner تساعد أصحاب الأعمال في السعودية على تشخيص تحديات التشغيل، التسويق، التخطيط والنمو، وتحويل القرارات إلى خطوات واقعية تناسب نشاطك.</p><div className="hero-actions"><button className="primary-btn" onClick={() => { window.location.assign("/consultation?service=business-consulting&from=%2F"); }}>اطلب استشارة بيزنس <ArrowUpLeft size={18} /></button><button className="text-btn" onClick={() => setLocation("/articles")}>استكشف المعرفة <ArrowLeft size={18} /></button></div></div>
       <div className="hero-visual"><div className="hero-stamp"><img src={logo} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = fallbackLogo; }} alt="Business Owner — الهوية الرسمية" /></div><div className="hero-note"><span>BUSINESS OWNER</span><p>من الوضوح تبدأ الحركة.</p></div></div>
     </section>
     <section className="signal-strip"><div><strong>01</strong><span>وضوح العرض</span></div><div><strong>02</strong><span>ثقة السوق</span></div><div><strong>03</strong><span>نظام النمو</span></div><div className="signal-last"><span>Business Owner</span><ArrowUpLeft size={18} /></div></section>
@@ -180,7 +179,7 @@ function ArticleCard({ article, index }: { article: typeof articles[number]; ind
   return <button className={`article-card card-${index}`} onClick={() => setLocation(`/articles/${article.slug}`)}><div className="article-visual"><span className="article-number">{String(index + 1).padStart(2, "0")}</span><div className="article-visual-content"><span className="article-visual-kicker">BUSINESS OWNER INSIGHTS</span><strong>{article.title}</strong><span className="article-visual-category">{article.category}</span></div><ArrowUpLeft /></div><div className="article-meta"><span>{article.category}</span><span>{article.readTime}</span></div><h3>{article.title}</h3><p>{article.excerpt}</p><span className="read-more">اقرأ المقال <ArrowLeft size={15} /></span></button>;
 }
 
-function LeadBanner({ onClick }: { onClick: () => void }) { return <section className="lead-banner"><div><span className="section-kicker">الخطوة التالية</span><h2>ما الذي تريد<br /><span>أن يتحرك؟</span></h2></div><div className="lead-right"><p>أرسل لنا سطراً واحداً عن مشروعك. سنعود إليك بسؤال أفضل من عرض عام.</p><a className="primary-btn light-btn" href="mailto:bussneis.owner@gmail.com?subject=Business%20Owner%20-%20استشارة">راسلنا عبر البريد <Mail size={18} /></a><a className="lead-email" href="mailto:bussneis.owner@gmail.com">bussneis.owner@gmail.com</a></div></section>; }
+function LeadBanner({ onClick }: { onClick: () => void }) { return <section className="lead-banner"><div><span className="section-kicker">الخطوة التالية</span><h2>ما الذي تريد<br /><span>أن يتحرك؟</span></h2></div><div className="lead-right"><p>أرسل لنا سطراً واحداً عن مشروعك. سنعود إليك بسؤال أفضل من عرض عام.</p><a className="primary-btn light-btn" href="/consultation?service=business-consulting">اطلب استشارة <Mail size={18} /></a><a className="lead-email" href="mailto:bussneis.owner@gmail.com">bussneis.owner@gmail.com</a></div></section>; }
 
 function ServicesPage() { const [, setLocation] = useLocation(); return <PageIntro kicker="الخدمات" title={<>ما يحتاجه عملك<br /><em>ليتحرك بثقة.</em></>} copy="نبدأ من السؤال الصحيح، ثم نبني ما يساعدك على الإجابة عنه في السوق: عرض، علامة، ومسار نمو قابل للقياس." ><div className="services-detail-list">{services.map((service) => <button className="service-detail" key={service.slug} onClick={() => setLocation(`/services/${service.slug}`)}><span className={`detail-index ${service.color}`}>{service.number}</span><div><span className="section-kicker">{service.eyebrow}</span><h3>{service.title}</h3><p>{service.summary}</p></div><ArrowUpLeft /></button>)}</div><LeadBanner onClick={() => setLocation("/contact")} /></PageIntro>; }
 
