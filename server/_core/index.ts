@@ -1,6 +1,7 @@
 import { importExistingContent } from "../cmsImport";
 import { originalArticles, originalServices } from "../cmsLegacyData";
 import { registerBusinessConsultingSeo, CONSULTING_PATHS } from "../businessConsultingSeo";
+import { registerConsultationLeadFlow } from "../consultationLeadFlow";
 import { restoreOriginalArticleDrafts } from "../repairLegacyDrafts";
 import { seedBusinessOwnerSettings } from "../cmsDefaults";
 import "dotenv/config";
@@ -112,6 +113,8 @@ async function startServer() {
   });
   // Dedicated, server-rendered business consulting landing pages for all sectors.
   registerBusinessConsultingSeo(app);
+  // Native bilingual consultation forms (no client JavaScript required).
+  registerConsultationLeadFlow(app);
   registerAdminLogin(app);
   registerCmsMedia(app);
   if (process.env.MANUS_OAUTH_API_URL) registerOAuthRoutes(app);
