@@ -43,7 +43,7 @@ function renderForm(locale:"ar"|"en",service:string,origin:string,error=""){
  '<div class="cols"><div><label for="lead-sector">'+(ar?"قطاع النشاط":"Business sector")+' *</label><select id="lead-sector" name="sector" required><option value="">'+(ar?"اختر القطاع":"Select sector")+'</option>'+options(sectors,industryLabels)+'</select></div><div><label for="lead-stage">'+(ar?"مرحلة النشاط":"Business stage")+' *</label><select id="lead-stage" name="stage" required><option value="">'+(ar?"اختر المرحلة":"Select stage")+'</option>'+options(stages,stageLabels)+'</select></div></div>'+
  '<div class="cols"><div><label for="lead-timeline">'+(ar?"متى تحتاج المساعدة؟":"When do you need support?")+' *</label><select id="lead-timeline" name="timeline" required><option value="">'+(ar?"اختر التوقيت":"Select timeline")+'</option>'+options(timelines,timeLabels)+'</select></div><div><label for="lead-service">'+(ar?"نوع الاستشارة":"Consultation type")+'</label><input id="lead-service" readonly value="'+esc(serviceName)+'"></div></div>'+
  '<label for="lead-challenge">'+(ar?"ما أهم مشكلة أو قرار تحتاج مساعدة بشأنه؟":"What business problem or decision do you need help with?")+' *</label><textarea id="lead-challenge" name="challenge" required minlength="8" maxlength="2400" placeholder="'+(ar?"اشرح التحدي الحالي وتأثيره على مشروعك.":"Explain your challenge and how it affects your business.")+'"></textarea>'+
- '<button type="submit">'+(ar?"إرسال طلب الاستشارة":"Submit consultation request")+'</button><p class="privacy">'+(ar?"بالإرسال توافق على استخدام بياناتك للرد على طلب الاستشارة فقط. لا نقدم وعودًا بنتائج أو أرباح مضمونة.":"By submitting, you agree that the details you provide may be used to respond to this enquiry. We cannot guarantee revenue outcomes.")+'</p></form><p class="hint">'+(ar?"للتواصل البديل: ":"Alternative contact: ")+'<a href="mailto:'+EMAIL+'">'+EMAIL+'</a></p></div>';
+ '<label class="privacy"><input type="checkbox" name="privacy_consent" value="yes" required style="width:auto;display:inline-block;margin-inline-end:6px">'+(ar?"أوافق على استخدام البيانات المقدمة للتواصل معي بشأن طلب الاستشارة.":"I consent to the use of these details to respond to my consultation request.")+'</label><button type="submit">'+(ar?"إرسال طلب الاستشارة":"Submit consultation request")+'</button><p class="privacy">'+(ar?"بالإرسال توافق على استخدام بياناتك للرد على طلب الاستشارة فقط. لا نقدم وعودًا بنتائج أو أرباح مضمونة.":"By submitting, you agree that the details you provide may be used to respond to this enquiry. We cannot guarantee revenue outcomes.")+'</p></form><p class="hint">'+(ar?"للتواصل البديل: ":"Alternative contact: ")+'<a href="mailto:'+EMAIL+'">'+EMAIL+'</a></p></div>';
  return layout(locale,body,leadTitle);
 }
 function renderSuccess(locale:"ar"|"en"){
@@ -81,6 +81,7 @@ export function registerConsultationLeadFlow(app:Express){
   }catch{return fail(403,"تعذر التحقق من مصدر الطلب.","Cannot verify request origin.");}
   if(field(req.body?.company_website,200))return res.redirect(303,locale==="ar"?"/consultation/success":"/en/consultation/success");
   const name=field(req.body?.name,121),email=field(req.body?.email,255).toLowerCase(),company=field(req.body?.company,151),challenge=field(req.body?.challenge,2401);
+  if(req.body?.privacy_consent!=="yes")return fail(400,"الموافقة على استخدام البيانات مطلوبة لإرسال الطلب.","Please consent to the use of your details to submit the request.");
   const service=field(req.body?.service,40),sector=field(req.body?.sector,40),stage=field(req.body?.stage,40),timeline=field(req.body?.timeline,40),city=field(req.body?.city,101),landing=field(req.body?.landing,180);
   if(name.length<2||name.length>120||email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||company.length>150||challenge.length<8||challenge.length>2400||!sectors.some(x=>x===sector)||!stages.some(x=>x===stage)||!timelines.some(x=>x===timeline)||city.length>100)
    return fail(400,"راجع الحقول المطلوبة وأعد المحاولة.","Please review the required fields and try again.");
@@ -89,7 +90,7 @@ export function registerConsultationLeadFlow(app:Express){
   try{
    assertLeadRateLimit(req.ip||"unknown");
    const notes=JSON.stringify({sector,stage,timeline,city,landing:safeLanding,locale,channel:"consulting_form"});
-   await createLead({name,email,company:company||null,service:serviceLabels[validService][locale],message:challenge,status:"new",source:"organic-consulting-site",notes});
+   await createLead({name,email,company:company||null,service:serviceLabels[validService][locale],message:challenge,status:"new",source:"consultation-form",notes});
    res.redirect(303,locale==="ar"?"/consultation/success":"/en/consultation/success");
   }catch(err){
    const code=err && typeof err==="object" && "code" in err && err.code==="TOO_MANY_REQUESTS"?429:503;
